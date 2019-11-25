@@ -53,14 +53,17 @@ class GCode(object):
         y = self.get('Y', default.y, multiply)
         z = self.get('Z', default.z, multiply)
         e = self.get('E', default.e, multiply)
-        return Coordinates(x, y, z, e)
+        k = self.get('K', default.k, multiply)    # koFi Extruder als neuer G-Befehl
+        n = self.get('N', default.n, multiply)    # Niederhalter als neuer G-Befehl
+
+        return Coordinates(x, y, z, e, k, n)    # coordinates muss mit input angepasst werden
 
     def has_coordinates(self):
         """ Check if at least one of the coordinates is present.
         :return: Boolean value.
         """
         return 'X' in self.params or 'Y' in self.params or 'Z' in self.params \
-               or 'E' in self.params
+               or 'E' in self.params or 'K' in self.params or 'N' in self.params    # neue Freiheitsgrade hinzugefügt
 
     def radius(self, default, multiply):
         """ Get radius for circular interpolation(I, J, K or R).
@@ -71,7 +74,7 @@ class GCode(object):
         i = self.get('I', default.x, multiply)
         j = self.get('J', default.y, multiply)
         k = self.get('K', default.z, multiply)
-        return Coordinates(i, j, k, 0)
+        return Coordinates(i, j, k, 0, 0, 0)    # Anpassen der inputs wegen zusätzlicher Freiheitsgrade (siehe Zeile 59)
 
     def command(self):
         """ Get value from gcode line.
@@ -93,7 +96,7 @@ class GCode(object):
         line = re.sub(clean_pattern, '', line)
         if len(line) == 0:
             return None
-        if line[0] == '%':
+        if line[0] == '%':    # % steht in manchen G-Code flavorn für Startbefehl -> nicht notwendig, daher ignorieren
             return None
         m = g_pattern.findall(line)
         if not m:
@@ -106,4 +109,7 @@ class GCode(object):
             raise GCodeException('duplicated gcode entries')
         if 'G' in params and 'M' in params:
             raise GCodeException('g and m command found')
+        if 'N' in params and 'M' in params:
+            raise GCodeException('n and m command found')
+            # In einer Zeile darf nicht N (Niederhalterkommando) und M (eigener Befehl) stehen
         return GCode(params)
