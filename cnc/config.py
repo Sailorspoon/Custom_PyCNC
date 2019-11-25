@@ -1,6 +1,15 @@
 # -----------------------------------------------------------------------------
 # Hardware config.
 
+
+# neue Parameter für Delta-Logik
+distance_pivot_carriage_mm = None
+radius_heatbed = None
+height_pivot_tool_mm = None
+height_carriage_mm = None
+length_arm = None
+distance_pivot_tool_mm = None
+
 # Maximum velocity for each axis in millimeter per minute.
 MAX_VELOCITY_MM_PER_MIN_X = 24000
 MAX_VELOCITY_MM_PER_MIN_Y = 12000
