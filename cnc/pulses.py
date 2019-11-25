@@ -254,7 +254,14 @@ class PulseGeneratorLinear(PulseGenerator):
         :param velocity_mm_per_min: desired velocity.
         """
         super(PulseGeneratorLinear, self).__init__(delta_mm)
-        distance_mm = abs(delta_mm)  # type: Coordinates
+        #distance_mm = abs(delta_mm)  # type: Coordinates
+        # Berechnung der Carriage Höhen abhängig von der aktuellen Tool Position
+        distance_pivot_carriage_mm.a = sqrt((radius_heatbed - (tx + height_pivot_tool_mm)) ** + (0 - ty) ** 2)
+        height_carriage_mm.a = tz + height_pivot_tool_mm + sqrt(length_arm.a ** 2 - distance_pivot_carriage_mm.a ** 2)
+        distance_pivot_carriage_mm.b = sqrt((radius_heatbed * cos(120) - (tx + distance_pivot_tool_mm * cos(120))) ** 2 + (radius_heatbed * sin(120) - (ty + distance_pivot_tool_mm *sin(120))) ** 2)
+        height_carriage_mm.b = tz + height_pivot_tool_mm + sqrt(length_arm.b ** 2 - distance_pivot_carriage_mm.b ** 2)
+        distance_pivot_carriage_mm.c = sqrt((radius_heatbed * cos(240) - (tx + distance_pivot_tool_mm * cos(240))) ** 2 + (radius_heatbed * sin(240) - (ty + distance_pivot_tool_mm *sin(240))) ** 2)
+        height_carriage_mm.c = tz + height_pivot_tool_mm + sqrt(length_arm.c ** 2 - distance_pivot_carriage_mm.c ** 2)
         # velocity of each axis
         distance_total_mm = distance_mm.length()
         self.max_velocity_mm_per_sec = self._adjust_velocity(distance_mm * (
