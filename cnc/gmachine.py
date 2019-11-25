@@ -319,7 +319,7 @@ class GMachine(object):
             c = 'G1'
         # read parameters
         if self._absoluteCoordinates:
-            coord = gcode.coordinates(self._position - self._local,
+            coord = gcode.coordinates(self._position - self._local, # wo Druckkopf hin soll
                                       self._convertCoordinates)
             coord = coord + self._local
             delta = coord - self._position
