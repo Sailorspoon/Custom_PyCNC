@@ -3,12 +3,12 @@
 
 
 # neue Parameter für Delta-Logik
-distance_pivot_carriage_mm = None
-radius_heatbed = None
-height_pivot_tool_mm = None
-height_carriage_mm = None
-length_arm = None
-distance_pivot_tool_mm = None
+distance_pivot_carriage_mm = 0.0
+radius_heatbed = 0.0
+height_pivot_tool_mm = 0.0
+height_carriage_mm = 0.0
+length_arm = 0.0
+distance_pivot_tool_mm = 0.0
 
 # Maximum velocity for each axis in millimeter per minute.
 MAX_VELOCITY_MM_PER_MIN_X = 24000
