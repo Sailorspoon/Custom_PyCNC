@@ -256,18 +256,23 @@ class PulseGeneratorLinear(PulseGenerator):
         """
         super(PulseGeneratorLinear, self).__init__(delta_mm)
         distance_mm = abs(delta_mm)  # type: Coordinates
+
         # Berechnung der Carriage Hoehen abhaengig von der aktuellen Tool Position
+        # Zwischenspeicherung der aktuellen Carriage Hoehe
         height_carriage_mm_old['a'] = height_carriage_mm['a']
         height_carriage_mm_old['b'] = height_carriage_mm['b']
         height_carriage_mm_old['c'] = height_carriage_mm['c']
 
+        # Berechnung der Zielposition des Tools durch Additition von aktueller Position und Verfahrweg (delta)
         tu = {'x': 0, 'y': 0, 'z': 0}
         tu['x'] += delta_mm.x
         tu['y'] += delta_mm.y
         tu['z'] += delta_mm.z
 
+        # Berechnung der auf x,y Ebene projezierten Distanz zwischen Pivot und Carriage,
         distance_pivot_carriage_mm['a'] = math.sqrt((radius_heatbed - (tu['x'] + distance_pivot_tool_mm)) ** 2
                                                     + (0 - tu['y']) ** 2)
+        # Berechnung der Carriage Hoehe
         height_carriage_mm['a'] = tu['z'] + height_pivot_tool_mm + math.sqrt(length_arm['a'] ** 2
                                                                              - distance_pivot_carriage_mm['a'] ** 2)
         distance_pivot_carriage_mm['b'] = math.sqrt((radius_heatbed * math.cos(math.radians(120))
@@ -282,6 +287,7 @@ class PulseGeneratorLinear(PulseGenerator):
                                                        - (tu['y'] + distance_pivot_tool_mm * math.sin(math.radians(240)))) ** 2)
         height_carriage_mm['c'] = tu['z'] + height_pivot_tool_mm + math.sqrt(length_arm['c'] ** 2
                                                                              - distance_pivot_carriage_mm['c'] ** 2)
+        # zu fahrende Hoehe des Carriage
         distance_mm.x = height_carriage_mm['a'] - height_carriage_mm_old['a']
         distance_mm.y = height_carriage_mm['b'] - height_carriage_mm_old['b']
         distance_mm.z = height_carriage_mm['c'] - height_carriage_mm_old['c']
