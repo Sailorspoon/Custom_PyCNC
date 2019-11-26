@@ -5,11 +5,11 @@ import math
 
 # neue Parameter fuer Delta-Logik
 distance_pivot_carriage_mm = dict()
-radius_heatbed = 0.0
-height_pivot_tool_mm = 0.0
+radius_heatbed = 200
+height_pivot_tool_mm = 50
 height_carriage_mm = dict()
-length_arm = dict()
-distance_pivot_tool_mm = 0.0
+length_arm = {'a': 300, 'b': 300, 'c': 300}
+distance_pivot_tool_mm = 50
 
 
 # Startwerte der carriage high (tx, ty, tz = 0)
