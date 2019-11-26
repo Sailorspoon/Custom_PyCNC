@@ -8,6 +8,7 @@ from cnc.heater import *
 from cnc.enums import *
 from cnc.watchdog import *
 
+coord = None
 
 class GMachineException(Exception):
     """ Exceptions while processing gcode line.
@@ -319,6 +320,7 @@ class GMachine(object):
             c = 'G1'
         # read parameters
         if self._absoluteCoordinates:
+            global coord
             coord = gcode.coordinates(self._position - self._local,  # wo Druckkopf hin soll
                                       self._convertCoordinates)
             coord = coord + self._local
