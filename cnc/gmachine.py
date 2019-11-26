@@ -1,7 +1,7 @@
 from __future__ import division
 
 import cnc.logging_config as logging_config
-from cnc import hal
+# from cnc import hal
 from cnc.pulses import *
 from cnc.coordinates import *
 from cnc.heater import *
@@ -18,13 +18,15 @@ class GMachineException(Exception):
 class GMachine(object):
     """ Main object which control and keep state of whole machine: steppers,
         spindle, extruder etc
+        Alle aufgerufenen Funktionen und referenzierten Informationen wurden um die zusaetzlichen Achsen
+        ergaenzt.
     """
     AUTO_FAN_ON = AUTO_FAN_ON
 
     def __init__(self):
         """ Initialization.
         """
-        self._position = Coordinates(0.0, 0.0, 0.0, 0.0)
+        self._position = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)    # Ergaenzung aus coordinates.py
         # init variables
         self._velocity = 0
         self._spindle_rpm = 0
@@ -48,14 +50,16 @@ class GMachine(object):
         hal.deinit()
 
     def reset(self):
-        """ Reinitialize all program configurable thing.
+        """ Reinitialize all program configurable things.
         """
         self._velocity = min(MAX_VELOCITY_MM_PER_MIN_X,
                              MAX_VELOCITY_MM_PER_MIN_Y,
                              MAX_VELOCITY_MM_PER_MIN_Z,
-                             MAX_VELOCITY_MM_PER_MIN_E)
+                             MAX_VELOCITY_MM_PER_MIN_E,
+                             MAX_VELOCITY_MM_PER_MIN_K,
+                             MAX_VELOCITY_MM_PER_MIN_N)
         self._spindle_rpm = 1000
-        self._local = Coordinates(0.0, 0.0, 0.0, 0.0)
+        self._local = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         self._convertCoordinates = 1.0
         self._absoluteCoordinates = True
         self._plane = PLANE_XY
@@ -98,24 +102,30 @@ class GMachine(object):
 
     def __check_delta(self, delta):
         pos = self._position + delta
-        if not pos.is_in_aabb(Coordinates(0.0, 0.0, 0.0, 0.0),
-                              Coordinates(TABLE_SIZE_X_MM, TABLE_SIZE_Y_MM,
-                                          TABLE_SIZE_Z_MM, 0)):
+        if not pos.is_in_aabb(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+                              Coordinates(TABLE_SIZE_X_MM, TABLE_SIZE_Y_MM,    # hier nur 3D Achsen relevant
+                                          TABLE_SIZE_Z_MM, 0, 0, 0)):
             raise GMachineException("out of effective area")
 
     # noinspection PyMethodMayBeStatic
     def __check_velocity(self, max_velocity):
+        # Ergaenzt um Achsen
         if max_velocity.x > MAX_VELOCITY_MM_PER_MIN_X \
                 or max_velocity.y > MAX_VELOCITY_MM_PER_MIN_Y \
                 or max_velocity.z > MAX_VELOCITY_MM_PER_MIN_Z \
-                or max_velocity.e > MAX_VELOCITY_MM_PER_MIN_E:
+                or max_velocity.e > MAX_VELOCITY_MM_PER_MIN_E \
+                or max_velocity.k > MAX_VELOCITY_MM_PER_MIN_K \
+                or max_velocity.n > MAX_VELOCITY_MM_PER_MIN_N:
             raise GMachineException("out of maximum speed")
 
     def _move_linear(self, delta, velocity):
+        # Ergaenzt um Achsen
         delta = delta.round(1.0 / STEPPER_PULSES_PER_MM_X,
                             1.0 / STEPPER_PULSES_PER_MM_Y,
                             1.0 / STEPPER_PULSES_PER_MM_Z,
-                            1.0 / STEPPER_PULSES_PER_MM_E)
+                            1.0 / STEPPER_PULSES_PER_MM_E,
+                            1.0 / STEPPER_PULSES_PER_MM_K,
+                            1.0 / STEPPER_PULSES_PER_MM_N)
         if delta.is_zero():
             return
         self.__check_delta(delta)
@@ -196,7 +206,7 @@ class GMachine(object):
                               1.0 / STEPPER_PULSES_PER_MM_E)
         self.__check_delta(delta)
         # get delta vector and put it on circle
-        circle_end = Coordinates(0, 0, 0, 0)
+        circle_end = Coordinates(0, 0, 0, 0, 0, 0)
         if self._plane == PLANE_XY:
             circle_end.x, circle_end.y = \
                 self.__adjust_circle(delta.x, delta.y, radius.x, radius.y,
@@ -219,10 +229,13 @@ class GMachine(object):
                                      TABLE_SIZE_X_MM)
             circle_end.y = delta.y
         circle_end.e = delta.e
+        """ Ergaenzung der Funktion fuer Kompatibilitaet"""
         circle_end = circle_end.round(1.0 / STEPPER_PULSES_PER_MM_X,
                                       1.0 / STEPPER_PULSES_PER_MM_Y,
                                       1.0 / STEPPER_PULSES_PER_MM_Z,
-                                      1.0 / STEPPER_PULSES_PER_MM_E)
+                                      1.0 / STEPPER_PULSES_PER_MM_E,
+                                      1.0 / STEPPER_PULSES_PER_MM_K,
+                                      1.0 / STEPPER_PULSES_PER_MM_N)
         logging.info("Moving circularly {} {} {} with radius {}"
                      " and velocity {}".format(self._plane, circle_end,
                                                direction, radius, velocity))
@@ -251,17 +264,17 @@ class GMachine(object):
         :param z: boolean, move Z axis to zero
         """
         if x and not y:
-            self._move_linear(Coordinates(-self._position.x, 0, 0, 0),
+            self._move_linear(Coordinates(-self._position.x, 0, 0, 0, 0, 0),
                               MAX_VELOCITY_MM_PER_MIN_X)
         elif y and not x:
-            self._move_linear(Coordinates(0, -self._position.y, 0, 0),
+            self._move_linear(Coordinates(0, -self._position.y, 0, 0, 0, 0),
                               MAX_VELOCITY_MM_PER_MIN_X)
         elif x and y:
-            d = Coordinates(-self._position.x, -self._position.y, 0, 0)
+            d = Coordinates(-self._position.x, -self._position.y, 0, 0, 0, 0)
             self._move_linear(d, min(MAX_VELOCITY_MM_PER_MIN_X,
                                      MAX_VELOCITY_MM_PER_MIN_Y))
         if z:
-            d = Coordinates(0, 0, -self._position.z, 0)
+            d = Coordinates(0, 0, -self._position.z, 0, 0, 0)
             self._move_linear(d, MAX_VELOCITY_MM_PER_MIN_Z)
 
     def position(self):
@@ -324,11 +337,11 @@ class GMachine(object):
             coord = coord + self._local
             delta = coord - self._position
         else:
-            delta = gcode.coordinates(Coordinates(0.0, 0.0, 0.0, 0.0),
+            delta = gcode.coordinates(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
                                       self._convertCoordinates)
             # coord = self._position + delta
         velocity = gcode.get('F', self._velocity)
-        radius = gcode.radius(Coordinates(0.0, 0.0, 0.0, 0.0),
+        radius = gcode.radius(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
                               self._convertCoordinates)
         # check parameters
         if velocity < MIN_VELOCITY_MM_PER_MIN:
@@ -338,9 +351,9 @@ class GMachine(object):
             vl = max(MAX_VELOCITY_MM_PER_MIN_X,
                      MAX_VELOCITY_MM_PER_MIN_Y,
                      MAX_VELOCITY_MM_PER_MIN_Z,
-                     MAX_VELOCITY_MM_PER_MIN_E)
+                     MAX_VELOCITY_MM_PER_MIN_E)    # hier keine Ergaenzung der anderen Motoren, da nicht notwendig
             l = delta.length()
-            if l > 0:
+            if l > 0:    # hier alle Achsen miteinbeziehen
                 proportion = abs(delta) / l
                 if proportion.x > 0:
                     v = int(MAX_VELOCITY_MM_PER_MIN_X / proportion.x)
@@ -356,6 +369,15 @@ class GMachine(object):
                         vl = v
                 if proportion.e > 0:
                     v = int(MAX_VELOCITY_MM_PER_MIN_E / proportion.e)
+                    if v < vl:
+                        vl = v
+                        """ Ergaenzung der anderen Achsen (spaeter pruefen ob noetig)"""
+                if proportion.k > 0:
+                    v = int(MAX_VELOCITY_MM_PER_MIN_K / proportion.k)
+                    if v < vl:
+                        vl = v
+                if proportion.n > 0:
+                    v = int(MAX_VELOCITY_MM_PER_MIN_N / proportion.n)
                     if v < vl:
                         vl = v
             self._move_linear(delta, vl)
@@ -384,15 +406,16 @@ class GMachine(object):
         elif c == 'G21':  # switch to mm
             self._convertCoordinates = 1.0
         elif c == 'G28':  # home
-            axises = gcode.has('X'), gcode.has('Y'), gcode.has('Z')
-            if axises == (False, False, False):
-                axises = True, True, True
+            """ homing des Drehmechanismus erwuenscht"""
+            axises = gcode.has('X'), gcode.has('Y'), gcode.has('Z'), gcode.has('N')
+            if axises == (False, False, False, False):
+                axises = True, True, True, True
             self.safe_zero(*axises)
             hal.join()
             if not hal.calibrate(*axises):
                 raise GMachineException("failed to calibrate")
         elif c == 'G53':  # switch to machine coords
-            self._local = Coordinates(0.0, 0.0, 0.0, 0.0)
+            self._local = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         elif c == 'G90':  # switch to absolute coords
             self._absoluteCoordinates = True
         elif c == 'G91':  # switch to relative coords
@@ -403,7 +426,9 @@ class GMachine(object):
                     Coordinates(self._position.x - self._local.x,
                                 self._position.y - self._local.y,
                                 self._position.z - self._local.z,
-                                self._position.e - self._local.e),
+                                self._position.e - self._local.e,
+                                self._position.k - self._local.k,
+                                self._position.n - self._local.n),
                     self._convertCoordinates)
             else:
                 self._local = self._position
@@ -460,7 +485,7 @@ class GMachine(object):
         elif c == 'M114':  # get current position
             hal.join()
             p = self.position()
-            answer = "X:{} Y:{} Z:{} E:{}".format(p.x, p.y, p.z, p.e)
+            answer = "X:{} Y:{} Z:{} E:{} K:{} N:{}".format(p.x, p.y, p.z, p.e, p.k, p.n)
         elif c is None:  # command not specified(ie just F was passed)
             pass
         # commands below are added just for compatibility

@@ -53,8 +53,8 @@ class GCode(object):
         y = self.get('Y', default.y, multiply)
         z = self.get('Z', default.z, multiply)
         e = self.get('E', default.e, multiply)
-        k = self.get('K', default.k, multiply)    # koFi Extruder als neuer G-Befehl
-        n = self.get('N', default.n, multiply)    # Niederhalter als neuer G-Befehl
+        k = self.get('K', default.k, multiply)    # koFi Extruder als neuer Befehl
+        n = self.get('N', default.n, multiply)    # Niederhalter als neuer Befehl
 
         return Coordinates(x, y, z, e, k, n)    # coordinates muss mit input angepasst werden
 
@@ -63,7 +63,7 @@ class GCode(object):
         :return: Boolean value.
         """
         return 'X' in self.params or 'Y' in self.params or 'Z' in self.params \
-               or 'E' in self.params or 'K' in self.params or 'N' in self.params    # neue Freiheitsgrade hinzugefügt
+               or 'E' in self.params or 'K' in self.params or 'N' in self.params    # neue Freiheitsgrade hinzugefuegt
 
     def radius(self, default, multiply):
         """ Get radius for circular interpolation(I, J, K or R).
@@ -74,7 +74,7 @@ class GCode(object):
         i = self.get('I', default.x, multiply)
         j = self.get('J', default.y, multiply)
         k = self.get('K', default.z, multiply)
-        return Coordinates(i, j, k, 0, 0, 0)    # Anpassen der inputs wegen zusätzlicher Freiheitsgrade (siehe Zeile 59)
+        return Coordinates(i, j, k, 0, 0, 0)    # Anpassen der inputs wegen zusaetzlicher Freiheitsgrade (siehe Zeile 59)
 
     def command(self):
         """ Get value from gcode line.
@@ -96,7 +96,7 @@ class GCode(object):
         line = re.sub(clean_pattern, '', line)
         if len(line) == 0:
             return None
-        if line[0] == '%':    # % steht in manchen G-Code flavorn für Startbefehl -> nicht notwendig, daher ignorieren
+        if line[0] == '%':    # % steht in manchen G-Code flavorn fuer Startbefehl -> nicht notwendig, daher ignorieren
             return None
         m = g_pattern.findall(line)
         if not m:

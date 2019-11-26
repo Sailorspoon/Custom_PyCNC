@@ -16,15 +16,15 @@ class Coordinates(object):
         self.y = round(y, 10)
         self.z = round(z, 10)
         self.e = round(e, 10)
-        self.k = round(k, 10)    # Einfügen der anderen FHG
-        self.n = round(n, 10)    # Einfügen der anderen FHG
+        self.k = round(k, 10)    # Einfuegen der anderen FHG
+        self.n = round(n, 10)    # Einfuegen der anderen FHG
 
     def is_zero(self):
         """ Check if all coordinates are zero.
         :return: boolean value.
         """
         return (self.x == 0.0 and self.y == 0.0 and self.z == 0.0
-                and self.e == 0.0 and self.k == 0.0 and self.n == 0.0)    # Einfügen der anderen FHG
+                and self.e == 0.0 and self.k == 0.0 and self.n == 0.0)    # Einfuegen der anderen FHG
 
     def is_in_aabb(self, p1, p2):
         """ Check coordinates are in aabb(Axis-Aligned Bounding Box).
@@ -36,13 +36,13 @@ class Coordinates(object):
         min_x, max_x = sorted((p1.x, p2.x))
         min_y, max_y = sorted((p1.y, p2.y))
         min_z, max_z = sorted((p1.z, p2.z))
-        min_n, max_n = sorted((p1.n, p2.n))    # Als Maximal/minimal Überprüfung des Verdrehwinkels
+        min_n, max_n = sorted((p1.n, p2.n))    # Als Maximal/minimal ueberpruefung des Verdrehwinkels
         if self.x < min_x or self.y < min_y or self.z < min_z or self.n < min_n:
             return False
         if self.x > max_x or self.y > max_y or self.z > max_z or self.n > max_n:
             return False
         return True
-        # Wichtig, dass zu einem späteren Zeitpunkt die Werte für p1.n und p2.n eingeführt werden
+        # Wichtig, dass zu einem spaeteren Zeitpunkt die Werte fuer p1.n und p2.n eingefuehrt werden
 
     def length(self):
         """ Calculate the length of vector.
@@ -50,9 +50,9 @@ class Coordinates(object):
         """
         return math.sqrt(self.x * self.x + self.y * self.y + self.z * self.z
                          + self.e * self.e + self.k * self.k + self.n * self.n)
-        # Vermututng: 4D Raum mit der Bewegung aller Motoren, Hinzufügen der neuen Freiheitsgrade und die Ansteuerung ihrer Motoren
+        # Vermututng: 4D Raum mit der Bewegung aller Motoren, Hinzufuegen der neuen Freiheitsgrade und die Ansteuerung ihrer Motoren
 
-    def round(self, base_x, base_y, base_z, base_e):
+    def round(self, base_x, base_y, base_z, base_e, base_k, base_n):
         """ Round values to specified base, ie 0.49 with base 0.25 will be 0.5.
         :param base_x: Base for x axis.
         :param base_y: Base for y axis.
@@ -116,4 +116,4 @@ class Coordinates(object):
                + ', ' + str(self.e) + ', ' + str(self.k) + '. ' + str(self.n) + ')'
 
     def __abs__(self):
-        return Coordinates(abs(self.x), abs(self.y), abs(self.z),  abs(self.e), abs(self.k), abs(self,n))
+        return Coordinates(abs(self.x), abs(self.y), abs(self.z),  abs(self.e), abs(self.k), abs(self.n))

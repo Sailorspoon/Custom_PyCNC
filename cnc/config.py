@@ -6,6 +6,8 @@ MAX_VELOCITY_MM_PER_MIN_X = 24000
 MAX_VELOCITY_MM_PER_MIN_Y = 12000
 MAX_VELOCITY_MM_PER_MIN_Z = 600
 MAX_VELOCITY_MM_PER_MIN_E = 1500
+MAX_VELOCITY_MM_PER_MIN_K = 10000    # Werte muessen spaeter noch angepasst werden
+MAX_VELOCITY_MM_PER_MIN_N = 10000
 MIN_VELOCITY_MM_PER_MIN = 1
 # Average velocity for endstop calibration procedure
 CALIBRATION_VELOCITY_MM_PER_MIN = 300
@@ -15,6 +17,8 @@ STEPPER_PULSES_PER_MM_X = 100
 STEPPER_PULSES_PER_MM_Y = 100
 STEPPER_PULSES_PER_MM_Z = 400
 STEPPER_PULSES_PER_MM_E = 150
+STEPPER_PULSES_PER_MM_K = 200    # Werte muessen spaeter noch angepasst werden
+STEPPER_PULSES_PER_MM_N = 500
 
 # Invert axises direction, by default(False) high level means increase of
 # position. For inverted(True) axis, high level means decrease of position.
@@ -22,6 +26,8 @@ STEPPER_INVERTED_X = True
 STEPPER_INVERTED_Y = False
 STEPPER_INVERTED_Z = False
 STEPPER_INVERTED_E = True
+STEPPER_INVERTED_K = False    # Ergaenzt um die weiteren FHGe
+STEPPER_INVERTED_N = False
 
 # Invert zero end stops switches. By default(False) low level on input pin
 # means that axis in zero position. For inverted(True) end stops, high level
