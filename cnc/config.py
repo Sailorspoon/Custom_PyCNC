@@ -3,7 +3,7 @@
 
 import math
 
-# neue Parameter für Delta-Logik
+# neue Parameter fuer Delta-Logik
 distance_pivot_carriage_mm = dict()
 radius_heatbed = 0.0
 height_pivot_tool_mm = 0.0
