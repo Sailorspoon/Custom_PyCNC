@@ -3,12 +3,30 @@
 
 
 # neue Parameter für Delta-Logik
-distance_pivot_carriage_mm = 0.0
+distance_pivot_carriage_mm = dict()
 radius_heatbed = 0.0
 height_pivot_tool_mm = 0.0
-height_carriage_mm = 0.0
+height_carriage_mm = dict()
 length_arm = 0.0
 distance_pivot_tool_mm = 0.0
+
+
+# Startwerte der carriage high (tx, ty, tz = 0)
+distance_pivot_carriage_mm.a = math.sqrt((radius_heatbed - (0 + distance_pivot_tool_mm)) ** + (0 - 0) ** 2)
+height_carriage_mm.a = 0 + height_pivot_tool_mm + math.sqrt(length_arm.a ** 2 - distance_pivot_carriage_mm.a ** 2)
+distance_pivot_carriage_mm.b = math.sqrt((radius_heatbed * math.cos(120)
+                                    - (0 + distance_pivot_tool_mm * math.cos(120))) ** 2
+                                    + (radius_heatbed * math.sin(120) - (0 + distance_pivot_tool_mm
+                                    * math.sin(120))) ** 2)
+height_carriage_mm.b = 0 + height_pivot_tool_mm + math.sqrt(length_arm.b ** 2 - distance_pivot_carriage_mm.b ** 2)
+distance_pivot_carriage_mm.c = math.sqrt((radius_heatbed * math.cos(240)
+                                    - (0 + distance_pivot_tool_mm * math.cos(240))) ** 2
+                                    + (radius_heatbed * math.sin(240) - (0 + distance_pivot_tool_mm
+                                    * math.sin(240))) ** 2)
+height_carriage_mm.c = 0 + height_pivot_tool_mm + math.sqrt(length_arm.c ** 2 - distance_pivot_carriage_mm.c ** 2)
+
+distance_mm = dict()
+height_carriage_mm_old = dict()
 
 # Maximum velocity for each axis in millimeter per minute.
 MAX_VELOCITY_MM_PER_MIN_X = 24000
