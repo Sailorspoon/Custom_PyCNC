@@ -4,10 +4,10 @@
 import math
 
 # neue Parameter fuer Delta-Logik
-distance_pivot_carriage_mm = dict()
+distance_pivot_carriage_mm = {'a': 0, 'b': 0, 'c': 0}
 radius_heatbed = 200
 height_pivot_tool_mm = 50
-height_carriage_mm = dict()
+height_carriage_mm = {'a': 0, 'b': 0, 'c': 0}
 length_arm = {'a': 300, 'b': 300, 'c': 300}
 distance_pivot_tool_mm = 50
 
