@@ -1,13 +1,14 @@
 # -----------------------------------------------------------------------------
 # Hardware config.
 
+import math
 
 # neue Parameter für Delta-Logik
 distance_pivot_carriage_mm = dict()
 radius_heatbed = 0.0
 height_pivot_tool_mm = 0.0
 height_carriage_mm = dict()
-length_arm = 0.0
+length_arm = dict()
 distance_pivot_tool_mm = 0.0
 
 

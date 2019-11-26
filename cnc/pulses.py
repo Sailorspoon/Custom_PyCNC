@@ -264,11 +264,11 @@ class PulseGeneratorLinear(PulseGenerator):
         tu.y = Coordinates.y
         tu.z = Coordinates.z
 
-        distance_pivot_carriage_mm.a = math.sqrt((radius_heatbed - (tu.x + distance_pivot_tool_mm)) ** + (0 - ty) ** 2)
+        distance_pivot_carriage_mm.a = math.sqrt((radius_heatbed - (tu.x + distance_pivot_tool_mm)) ** + (0 - tu.y) ** 2)
         height_carriage_mm.a = tu.z + height_pivot_tool_mm + math.sqrt(length_arm.a ** 2
                                                                      - distance_pivot_carriage_mm.a ** 2)
         distance_pivot_carriage_mm.b = math.sqrt((radius_heatbed * math.cos(120)
-                                                  - (tx + distance_pivot_tool_mm * math.cos(120))) ** 2
+                                                  - (tu.x + distance_pivot_tool_mm * math.cos(120))) ** 2
                                                  + (radius_heatbed * math.sin(120) - (tu.y + distance_pivot_tool_mm
                                                                                       * math.sin(120))) ** 2)
         height_carriage_mm.b = tu.z + height_pivot_tool_mm + math.sqrt(length_arm.b ** 2
