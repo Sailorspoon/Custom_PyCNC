@@ -254,7 +254,7 @@ class PulseGeneratorLinear(PulseGenerator):
         """
         super(PulseGeneratorLinear, self).__init__(delta_mm)
         #distance_mm = abs(delta_mm)  # type: Coordinates
-        # Berechnung der Carriage Höhen abhängig von der aktuellen Tool Position
+        # Berechnung der Carriage Hoehen abhaengig von der aktuellen Tool Position
         height_carriage_mm_old.a = height_carriage_mm.a
         height_carriage_mm_old.b = height_carriage_mm.b
         height_carriage_mm_old.c = height_carriage_mm.c
