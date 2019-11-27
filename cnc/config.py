@@ -1,3 +1,4 @@
+# Aenderung Max 27.11.2019
 # -----------------------------------------------------------------------------
 # Hardware config.
 
@@ -6,7 +7,7 @@ MAX_VELOCITY_MM_PER_MIN_X = 24000
 MAX_VELOCITY_MM_PER_MIN_Y = 12000
 MAX_VELOCITY_MM_PER_MIN_Z = 600
 MAX_VELOCITY_MM_PER_MIN_E = 1500
-MAX_VELOCITY_MM_PER_MIN_K = 10000    # Werte muessen spaeter noch angepasst werden
+MAX_VELOCITY_MM_PER_MIN_Q = 10000    # Werte muessen spaeter noch angepasst werden
 MAX_VELOCITY_MM_PER_MIN_N = 10000
 MIN_VELOCITY_MM_PER_MIN = 1
 # Average velocity for endstop calibration procedure
@@ -17,7 +18,7 @@ STEPPER_PULSES_PER_MM_X = 100
 STEPPER_PULSES_PER_MM_Y = 100
 STEPPER_PULSES_PER_MM_Z = 400
 STEPPER_PULSES_PER_MM_E = 150
-STEPPER_PULSES_PER_MM_K = 200    # Werte muessen spaeter noch angepasst werden
+STEPPER_PULSES_PER_MM_Q = 200    # Werte muessen spaeter noch angepasst werden
 STEPPER_PULSES_PER_MM_N = 500
 
 # Invert axises direction, by default(False) high level means increase of
@@ -26,7 +27,7 @@ STEPPER_INVERTED_X = True
 STEPPER_INVERTED_Y = False
 STEPPER_INVERTED_Z = False
 STEPPER_INVERTED_E = True
-STEPPER_INVERTED_K = False    # Ergaenzt um die weiteren FHGe
+STEPPER_INVERTED_Q = False    # Ergaenzt um die weiteren FHGe
 STEPPER_INVERTED_N = False
 
 # Invert zero end stops switches. By default(False) low level on input pin
@@ -40,6 +41,8 @@ ENDSTOP_INVERTED_Z = False  # Auto leveler
 TABLE_SIZE_X_MM = 200
 TABLE_SIZE_Y_MM = 200
 TABLE_SIZE_Z_MM = 220
+foo = 360
+TABLE_SIZE_N_MM = foo     # dieser Wert wird spaeter fuer die Einhaltung des Schwenkradiuses verwendet
 
 # Mixed settings.
 STEPPER_PULSE_LENGTH_US = 2
@@ -64,11 +67,15 @@ STEPPER_STEP_PIN_X = 21
 STEPPER_STEP_PIN_Y = 16
 STEPPER_STEP_PIN_Z = 12
 STEPPER_STEP_PIN_E = 8
+STEPPER_STEP_PIN_Q = 8
+STEPPER_STEP_PIN_N = 8
 
 STEPPER_DIR_PIN_X = 20
 STEPPER_DIR_PIN_Y = 19
 STEPPER_DIR_PIN_Z = 13
 STEPPER_DIR_PIN_E = 7
+STEPPER_DIR_PIN_Q = 7
+STEPPER_DIR_PIN_N = 7
 
 SPINDLE_PWM_PIN = 4
 FAN_PIN = 27

@@ -1,3 +1,4 @@
+# Aenderung Max 27.11.2019
 import time
 
 from cnc.hal_raspberry import rpgpio
@@ -11,11 +12,14 @@ gpio = rpgpio.GPIO()
 dma = rpgpio.DMAGPIO()
 pwm = rpgpio.DMAPWM()
 watchdog = rpgpio.DMAWatchdog()
-
+"""x << y Returns x with the bits shifted to the left by y places (and new bits on the right-hand-side are zeros). 
+This is the same as multiplying x by 2**y"""
 STEP_PIN_MASK_X = 1 << STEPPER_STEP_PIN_X
 STEP_PIN_MASK_Y = 1 << STEPPER_STEP_PIN_Y
 STEP_PIN_MASK_Z = 1 << STEPPER_STEP_PIN_Z
 STEP_PIN_MASK_E = 1 << STEPPER_STEP_PIN_E
+STEP_PIN_MASK_Q = 1 << STEPPER_STEP_PIN_Q
+STEP_PIN_MASK_N = 1 << STEPPER_STEP_PIN_N
 
 
 def init():
@@ -25,13 +29,20 @@ def init():
     gpio.init(STEPPER_STEP_PIN_Y, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_STEP_PIN_Z, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_STEP_PIN_E, rpgpio.GPIO.MODE_OUTPUT)
+    gpio.init(STEPPER_STEP_PIN_Q, rpgpio.GPIO.MODE_OUTPUT)
+    gpio.init(STEPPER_STEP_PIN_N, rpgpio.GPIO.MODE_OUTPUT)
+
     gpio.init(STEPPER_DIR_PIN_X, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_DIR_PIN_Y, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_DIR_PIN_Z, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_DIR_PIN_E, rpgpio.GPIO.MODE_OUTPUT)
+    gpio.init(STEPPER_DIR_PIN_Q, rpgpio.GPIO.MODE_OUTPUT)
+    gpio.init(STEPPER_DIR_PIN_N, rpgpio.GPIO.MODE_OUTPUT)
+
     gpio.init(ENDSTOP_PIN_X, rpgpio.GPIO.MODE_INPUT_PULLUP)
     gpio.init(ENDSTOP_PIN_Y, rpgpio.GPIO.MODE_INPUT_PULLUP)
     gpio.init(ENDSTOP_PIN_Z, rpgpio.GPIO.MODE_INPUT_PULLUP)
+
     gpio.init(SPINDLE_PWM_PIN, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(FAN_PIN, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(EXTRUDER_HEATER_PIN, rpgpio.GPIO.MODE_OUTPUT)
@@ -230,15 +241,16 @@ def move(generator):
     instant = INSTANT_RUN
     st = time.time()
     current_cb = 0
-    k = 0
+    """ Variable k zu k00 geaendert, um Doppelbelegung mit koFi Extruder zu vermeiden"""
+    k00 = 0
     k0 = 0
-    for direction, tx, ty, tz, te in generator:
+    for direction, tx, ty, tz, te, tq, tn in generator:
         if current_cb is not None:
             while dma.current_address() + bytes_per_iter >= current_cb:
                 time.sleep(0.001)
                 current_cb = dma.current_control_block()
                 if current_cb is None:
-                    k0 = k
+                    k0 = k00
                     st = time.time()
                     break  # previous dma sequence has stopped
         if direction:  # set up directions
@@ -260,6 +272,14 @@ def move(generator):
                 pins_to_clear |= 1 << STEPPER_DIR_PIN_E
             elif te < 0:
                 pins_to_set |= 1 << STEPPER_DIR_PIN_E
+            if tq > 0:
+                pins_to_clear |= 1 << STEPPER_DIR_PIN_Q
+            elif tq < 0:
+                pins_to_set |= 1 << STEPPER_DIR_PIN_Q
+            if tn > 0:
+                pins_to_clear |= 1 << STEPPER_DIR_PIN_N
+            elif tn < 0:
+                pins_to_set |= 1 << STEPPER_DIR_PIN_N
             dma.add_set_clear(pins_to_set, pins_to_clear)
             continue
         pins = 0
@@ -267,7 +287,7 @@ def move(generator):
         for i in (tx, ty, tz, te):
             if i is not None and (m is None or i < m):
                 m = i
-        k = int(round(m * US_IN_SECONDS))
+        k00 = int(round(m * US_IN_SECONDS))
         if tx is not None:
             pins |= STEP_PIN_MASK_X
         if ty is not None:
@@ -276,18 +296,22 @@ def move(generator):
             pins |= STEP_PIN_MASK_Z
         if te is not None:
             pins |= STEP_PIN_MASK_E
-        if k - prev > 0:
-            dma.add_delay(k - prev)
+        if tq is not None:
+            pins |= STEP_PIN_MASK_Q
+        if tn is not None:
+            pins |= STEP_PIN_MASK_N
+        if k00 - prev > 0:
+            dma.add_delay(k00 - prev)
         dma.add_pulse(pins, STEPPER_PULSE_LENGTH_US)
         # TODO not a precise way! pulses will set in queue, instead of crossing
         # if next pulse start during pulse length. Though it almost doesn't
         # matter for pulses with 1-2us length.
-        prev = k + STEPPER_PULSE_LENGTH_US
+        prev = k00 + STEPPER_PULSE_LENGTH_US
         # instant run handling
         if not is_ran and instant and current_cb is None:
-            if k - k0 > 100000:  # wait at least 100 ms is uploaded
+            if k00 - k0 > 100000:  # wait at least 100 ms is uploaded
                 nt = time.time() - st
-                ng = (k - k0) / 1000000.0
+                ng = (k00 - k0) / 1000000.0
                 if nt > ng:
                     logging.warn("Buffer preparing for instant run took more "
                                  "time then buffer time"

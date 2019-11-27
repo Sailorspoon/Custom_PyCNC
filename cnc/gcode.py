@@ -1,3 +1,4 @@
+# Aenderung Max 27.11.2019
 import re
 
 from cnc.coordinates import Coordinates
@@ -53,17 +54,17 @@ class GCode(object):
         y = self.get('Y', default.y, multiply)
         z = self.get('Z', default.z, multiply)
         e = self.get('E', default.e, multiply)
-        k = self.get('K', default.k, multiply)    # koFi Extruder als neuer Befehl
+        q = self.get('Q', default.q, multiply)    # koFi Extruder als neuer Befehl
         n = self.get('N', default.n, multiply)    # Niederhalter als neuer Befehl
 
-        return Coordinates(x, y, z, e, k, n)    # coordinates muss mit input angepasst werden
+        return Coordinates(x, y, z, e, q, n)    # coordinates muss mit input angepasst werden
 
     def has_coordinates(self):
         """ Check if at least one of the coordinates is present.
         :return: Boolean value.
         """
         return 'X' in self.params or 'Y' in self.params or 'Z' in self.params \
-               or 'E' in self.params or 'K' in self.params or 'N' in self.params    # neue Freiheitsgrade hinzugefuegt
+               or 'E' in self.params or 'Q' in self.params or 'N' in self.params    # neue Freiheitsgrade hinzugefuegt
 
     def radius(self, default, multiply):
         """ Get radius for circular interpolation(I, J, K or R).
@@ -73,8 +74,8 @@ class GCode(object):
         """
         i = self.get('I', default.x, multiply)
         j = self.get('J', default.y, multiply)
-        k = self.get('K', default.z, multiply)
-        return Coordinates(i, j, k, 0, 0, 0)    # Anpassen der inputs wegen zusaetzlicher Freiheitsgrade (siehe Zeile 59)
+        q = self.get('Q', default.z, multiply)
+        return Coordinates(i, j, q, 0, 0, 0)    # Anpassen der inputs wegen zusaetzlicher Freiheitsgrade (siehe Zeile 59)
 
     def command(self):
         """ Get value from gcode line.

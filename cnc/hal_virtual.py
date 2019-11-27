@@ -1,3 +1,4 @@
+# Aenderung Max 27.11.2019
 from __future__ import division
 import time
 
@@ -86,18 +87,18 @@ def move(generator):
     :param generator: PulseGenerator object.
     """
     delta = generator.delta()
-    ix = iy = iz = ie = ik = i_n = 0
-    lx, ly, lz, le, lk, ln = None, None, None, None, None, None
-    dx, dy, dz, de, dk, dn = 0, 0, 0, 0, 0, 0
-    mx, my, mz, me, mk, mn = 0, 0, 0, 0, 0, 0
-    cx, cy, cz, ce, ck, cn = 0, 0, 0, 0, 0, 0
-    direction_x, direction_y, direction_z, direction_e, direction_k, direction_n = 1, 1, 1, 1, 1, 1
+    ix = iy = iz = ie = iq = i_n = 0
+    lx, ly, lz, le, lq, ln = None, None, None, None, None, None
+    dx, dy, dz, de, dq, dn = 0, 0, 0, 0, 0, 0
+    mx, my, mz, me, mq, mn = 0, 0, 0, 0, 0, 0
+    cx, cy, cz, ce, cq, cn = 0, 0, 0, 0, 0, 0
+    direction_x, direction_y, direction_z, direction_e, direction_q, direction_n = 1, 1, 1, 1, 1, 1
     st = time.time()
     direction_found = False
-    for direction, tx, ty, tz, te, tk, tn in generator:
+    for direction, tx, ty, tz, te, tq, tn in generator:
         if direction:
             direction_found = True
-            direction_x, direction_y, direction_z, direction_e, direction_k, direction_n = tx, ty, tz, te, tk, tn
+            direction_x, direction_y, direction_z, direction_e, direction_q, direction_n = tx, ty, tz, te, tq, tn
             if STEPPER_INVERTED_X:
                 direction_x = -direction_x
             if STEPPER_INVERTED_Y:
@@ -106,8 +107,8 @@ def move(generator):
                 direction_z = -direction_z
             if STEPPER_INVERTED_E:
                 direction_e = -direction_e
-            if STEPPER_INVERTED_K:
-                direction_k = -direction_k
+            if STEPPER_INVERTED_Q:
+                direction_q = -direction_q
             if STEPPER_INVERTED_N:
                 direction_n = -direction_n
             if isinstance(generator, PulseGeneratorLinear):
@@ -119,8 +120,8 @@ def move(generator):
                         or (direction_z > 0 and delta.z > 0) or delta.z == 0)
                 assert ((direction_e < 0 and delta.e < 0)
                         or (direction_e > 0 and delta.e > 0) or delta.e == 0)
-                assert ((direction_k < 0 and delta.k < 0)
-                        or (direction_k > 0 and delta.k > 0) or delta.k == 0)
+                assert ((direction_q < 0 and delta.q < 0)
+                        or (direction_q > 0 and delta.q > 0) or delta.q == 0)
                 assert ((direction_e < 0 and delta.n < 0)
                         or (direction_n > 0 and delta.n > 0) or delta.n == 0)
             continue
@@ -172,18 +173,18 @@ def move(generator):
             le = te
         else:
             de = None
-        if tk is not None:
-            if tk > mk:
-                mk = tk
-            tk = int(round(tk * 1000000))
-            ik += direction_k
-            ck += 1
-            if lk is not None:
-                dk = tk - lk
-                assert dk > 0, "negative or zero time delta detected for e"
-            lk = tk
+        if tq is not None:
+            if tq > mq:
+                mq = tq
+            tq = int(round(tq * 1000000))
+            iq += direction_q
+            cq += 1
+            if lq is not None:
+                dq = tq - lq
+                assert dq > 0, "negative or zero time delta detected for e"
+            lq = tq
         else:
-            dk = None
+            dq = None
         if tn is not None:
             if tn > mn:
                 mn = tn
@@ -199,7 +200,7 @@ def move(generator):
         # very verbose, uncomment on demand
         # logging.debug("Iteration {} is {} {} {} {}".
         #               format(max(ix, iy, iz, ie), tx, ty, tz, te))
-        f = list(x for x in (tx, ty, tz, te, tk, tn) if x is not None)
+        f = list(x for x in (tx, ty, tz, te, tq, tn) if x is not None)
         assert f.count(f[0]) == len(f), "fast forwarded pulse detected"
     pt = time.time()
     assert direction_found, "direction not found"
@@ -211,13 +212,13 @@ def move(generator):
         "z wrong number of pulses"
     assert round(ie / STEPPER_PULSES_PER_MM_E, 10) == delta.e, \
         "e wrong number of pulses"
-    assert round(ik / STEPPER_PULSES_PER_MM_K, 10) == delta.k, \
+    assert round(iq / STEPPER_PULSES_PER_MM_Q, 10) == delta.q, \
         "e wrong number of pulses"
     assert round(i_n / STEPPER_PULSES_PER_MM_N, 10) == delta.n, \
         "e wrong number of pulses"
-    assert max(mx, my, mz, me, mk, mn) <= generator.total_time_s(), \
+    assert max(mx, my, mz, me, mq, mn) <= generator.total_time_s(), \
         "interpolation time or pulses wrong"
-    logging.debug("Moved {}, {}, {}, {}, {}, {} iterations".format(ix, iy, iz, ie, ik, i_n))
+    logging.debug("Moved {}, {}, {}, {}, {}, {} iterations".format(ix, iy, iz, ie, iq, i_n))
     logging.info("prepared in " + str(round(pt - st, 2)) + "s, estimated "
                  + str(round(generator.total_time_s(), 2)) + "s")
 

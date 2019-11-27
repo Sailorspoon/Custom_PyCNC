@@ -1,3 +1,4 @@
+# Aenderung Max 27.11.2019
 from __future__ import division
 
 import cnc.logging_config as logging_config
@@ -56,7 +57,7 @@ class GMachine(object):
                              MAX_VELOCITY_MM_PER_MIN_Y,
                              MAX_VELOCITY_MM_PER_MIN_Z,
                              MAX_VELOCITY_MM_PER_MIN_E,
-                             MAX_VELOCITY_MM_PER_MIN_K,
+                             MAX_VELOCITY_MM_PER_MIN_Q,
                              MAX_VELOCITY_MM_PER_MIN_N)
         self._spindle_rpm = 1000
         self._local = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
@@ -114,7 +115,7 @@ class GMachine(object):
                 or max_velocity.y > MAX_VELOCITY_MM_PER_MIN_Y \
                 or max_velocity.z > MAX_VELOCITY_MM_PER_MIN_Z \
                 or max_velocity.e > MAX_VELOCITY_MM_PER_MIN_E \
-                or max_velocity.k > MAX_VELOCITY_MM_PER_MIN_K \
+                or max_velocity.q > MAX_VELOCITY_MM_PER_MIN_Q \
                 or max_velocity.n > MAX_VELOCITY_MM_PER_MIN_N:
             raise GMachineException("out of maximum speed")
 
@@ -124,7 +125,7 @@ class GMachine(object):
                             1.0 / STEPPER_PULSES_PER_MM_Y,
                             1.0 / STEPPER_PULSES_PER_MM_Z,
                             1.0 / STEPPER_PULSES_PER_MM_E,
-                            1.0 / STEPPER_PULSES_PER_MM_K,
+                            1.0 / STEPPER_PULSES_PER_MM_Q,
                             1.0 / STEPPER_PULSES_PER_MM_N)
         if delta.is_zero():
             return
@@ -234,7 +235,7 @@ class GMachine(object):
                                       1.0 / STEPPER_PULSES_PER_MM_Y,
                                       1.0 / STEPPER_PULSES_PER_MM_Z,
                                       1.0 / STEPPER_PULSES_PER_MM_E,
-                                      1.0 / STEPPER_PULSES_PER_MM_K,
+                                      1.0 / STEPPER_PULSES_PER_MM_Q,
                                       1.0 / STEPPER_PULSES_PER_MM_N)
         logging.info("Moving circularly {} {} {} with radius {}"
                      " and velocity {}".format(self._plane, circle_end,
@@ -372,8 +373,8 @@ class GMachine(object):
                     if v < vl:
                         vl = v
                         """ Ergaenzung der anderen Achsen (spaeter pruefen ob noetig)"""
-                if proportion.k > 0:
-                    v = int(MAX_VELOCITY_MM_PER_MIN_K / proportion.k)
+                if proportion.q > 0:
+                    v = int(MAX_VELOCITY_MM_PER_MIN_Q / proportion.q)
                     if v < vl:
                         vl = v
                 if proportion.n > 0:
@@ -427,7 +428,7 @@ class GMachine(object):
                                 self._position.y - self._local.y,
                                 self._position.z - self._local.z,
                                 self._position.e - self._local.e,
-                                self._position.k - self._local.k,
+                                self._position.q - self._local.q,
                                 self._position.n - self._local.n),
                     self._convertCoordinates)
             else:
@@ -485,7 +486,7 @@ class GMachine(object):
         elif c == 'M114':  # get current position
             hal.join()
             p = self.position()
-            answer = "X:{} Y:{} Z:{} E:{} K:{} N:{}".format(p.x, p.y, p.z, p.e, p.k, p.n)
+            answer = "X:{} Y:{} Z:{} E:{} Q:{} N:{}".format(p.x, p.y, p.z, p.e, p.q, p.n)
         elif c is None:  # command not specified(ie just F was passed)
             pass
         # commands below are added just for compatibility

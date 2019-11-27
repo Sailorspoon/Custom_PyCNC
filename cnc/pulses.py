@@ -1,3 +1,4 @@
+# Aenderung Max 27.11.2019
 # coding=utf-8
 from __future__ import division
 import logging
@@ -57,7 +58,7 @@ class PulseGenerator(object):
         """
         if not self.AUTO_VELOCITY_ADJUSTMENT:
             return velocity_mm_sec
-        """ Umbennen der Variable k in var_const, um Doppelbelegung mit koFi Extrusion aus 
+        """ Umbennen der Variable q in var_const, um Doppelbelegung mit koFi Extrusion aus 
         coordinates.py zu vermeiden"""
         var_const = 1.0  # Umbenennen der Variable, um Doppelbelegung zu vermeiden
         if velocity_mm_sec.x * SECONDS_IN_MINUTE > MAX_VELOCITY_MM_PER_MIN_X:
@@ -92,7 +93,7 @@ class PulseGenerator(object):
         """
         raise NotImplemented
 
-    def _interpolation_function(self, ix, iy, iz, ie, ik, i_n):
+    def _interpolation_function(self, ix, iy, iz, ie, iq, i_n):
         """ Get function for interpolation path. This function should returned
             values as it is uniform movement. There is only one trick, function
             must be expressed in terms of position, i.e. t = S / V for linear,
@@ -101,7 +102,7 @@ class PulseGenerator(object):
         :param iy: number of pulse for Y axis.
         :param iz: number of pulse for Z axis.
         :param ie: number of pulse for E axis.
-        :param ik: number of pulses for koFi Extruder
+        :param iq: number of pulses for koFi Extruder
         :param i_n: number of pulses for rotary degree of freedom
         :return: Two tuples. First is tuple is directions for each axis,
                  positive means forward, negative means reverse. Second is
@@ -123,7 +124,7 @@ class PulseGenerator(object):
         self._iteration_y = 0
         self._iteration_z = 0
         self._iteration_e = 0
-        self._iteration_k = 0
+        self._iteration_q = 0
         self._iteration_n = 0
         self._iteration_direction = None
         logging.debug(', '.join("%s: %s" % i for i in vars(self).items()))
@@ -180,14 +181,14 @@ class PulseGenerator(object):
                  left StopIteration will be raised.
                  Nachtrag - Ergaenzt für die beiden zusaetzlichen Achsen
         """
-        direction, (tx, ty, tz, te, tk, tn) = \
+        direction, (tx, ty, tz, te, tq, tn) = \
             self._interpolation_function(self._iteration_x, self._iteration_y,
                                          self._iteration_z, self._iteration_e,
-                                         self._iteration_k, self._iteration_n)
+                                         self._iteration_q, self._iteration_n)
         # check if direction update:
         if direction != self._iteration_direction:
             self._iteration_direction = direction
-            dir_x, dir_y, dir_z, dir_e, dir_k, dir_n = direction
+            dir_x, dir_y, dir_z, dir_e, dir_q, dir_n = direction
             if STEPPER_INVERTED_X:
                 dir_x = -dir_x
             if STEPPER_INVERTED_Y:
@@ -196,18 +197,18 @@ class PulseGenerator(object):
                 dir_z = -dir_z
             if STEPPER_INVERTED_E:
                 dir_e = -dir_e
-            if STEPPER_INVERTED_K:
-                dir_k = -dir_k
+            if STEPPER_INVERTED_Q:
+                dir_q = -dir_q
             if STEPPER_INVERTED_N:
                 dir_n = -dir_n
-            return True, dir_x, dir_y, dir_z, dir_e, dir_k, dir_n
+            return True, dir_x, dir_y, dir_z, dir_e, dir_q, dir_n
         # check condition to stop
-        if tx is None and ty is None and tz is None and te is None and tk is None and tn is None:
+        if tx is None and ty is None and tz is None and te is None and tq is None and tn is None:
             raise StopIteration
 
         # convert to real time
         m = None
-        for i in (tx, ty, tz, te, tk, tn):  # Ergaenzt um Zeiten für die weiteren FHGe
+        for i in (tx, ty, tz, te, tq, tn):  # Ergaenzt um Zeiten für die weiteren FHGe
             if i is not None and (m is None or i < m):
                 m = i
         am = self._to_accelerated_time(m)
@@ -237,12 +238,12 @@ class PulseGenerator(object):
                 te = am
                 self._iteration_e += 1
         """ Ergaenzt um weitere FHGe (kopiert von oben)"""
-        if tk is not None:
-            if tk > m:
-                tk = None
+        if tq is not None:
+            if tq > m:
+                tq = None
             else:
-                tk = am
-                self._iteration_k += 1
+                tq = am
+                self._iteration_q += 1
         if tn is not None:
             if tn > m:
                 tn = None
@@ -250,7 +251,7 @@ class PulseGenerator(object):
                 tn = am
                 self._iteration_n += 1
 
-        return False, tx, ty, tz, te, tk, tn
+        return False, tx, ty, tz, te, tq, tn
 
     def total_time_s(self):
         """ Get total time for movement.
@@ -311,17 +312,17 @@ class PulseGeneratorLinear(PulseGenerator):
         self._total_pulses_y = round(distance_mm.y * STEPPER_PULSES_PER_MM_Y)
         self._total_pulses_z = round(distance_mm.z * STEPPER_PULSES_PER_MM_Z)
         self._total_pulses_e = round(distance_mm.e * STEPPER_PULSES_PER_MM_E)
-        self._total_pulses_k = round(distance_mm.k * STEPPER_PULSES_PER_MM_K)
+        self._total_pulses_q = round(distance_mm.q * STEPPER_PULSES_PER_MM_Q)
         self._total_pulses_n = round(distance_mm.n * STEPPER_PULSES_PER_MM_N)
         """Ergaenzung um die Totalpulses in k und n - Richtung (siehe config.py für Kalibrierung und hal_virtual.py und
         gmachine)"""
-        self._total_pulses_k = round(distance_mm.k - STEPPER_PULSES_PER_MM_K)
+        self._total_pulses_q = round(distance_mm.q - STEPPER_PULSES_PER_MM_Q)
         self._total_pulses_n = round(distance_mm.n - STEPPER_PULSES_PER_MM_N)
         self._direction = (math.copysign(1, delta_mm.x),
                            math.copysign(1, delta_mm.y),
                            math.copysign(1, delta_mm.z),
                            math.copysign(1, delta_mm.e),
-                           math.copysign(1, delta_mm.k),
+                           math.copysign(1, delta_mm.q),
                            math.copysign(1, delta_mm.n))
 
     def _get_movement_parameters(self):
@@ -341,7 +342,7 @@ class PulseGeneratorLinear(PulseGenerator):
         # Linear movement, S = V * t -> t = S / V
         return i / pulses_per_mm / velocity_mm_per_sec
 
-    def _interpolation_function(self, ix, iy, iz, ie, ik, i_n):
+    def _interpolation_function(self, ix, iy, iz, ie, iq, i_n):
         """ Calculate interpolation values for linear movement, see super class
             for details.
         """
@@ -353,11 +354,11 @@ class PulseGeneratorLinear(PulseGenerator):
                             self.max_velocity_mm_per_sec.z)
         t_e = self.__linear(ie, STEPPER_PULSES_PER_MM_E, self._total_pulses_e,
                             self.max_velocity_mm_per_sec.e)
-        t_k = self.__linear(ik, STEPPER_PULSES_PER_MM_K, self._total_pulses_k,
-                            self.max_velocity_mm_per_sec.k)
+        t_q = self.__linear(iq, STEPPER_PULSES_PER_MM_Q, self._total_pulses_q,
+                            self.max_velocity_mm_per_sec.q)
         t_n = self.__linear(i_n, STEPPER_PULSES_PER_MM_N, self._total_pulses_n,
                             self.max_velocity_mm_per_sec.n)
-        return self._direction, (t_x, t_y, t_z, t_e, t_k, t_n)
+        return self._direction, (t_x, t_y, t_z, t_e, t_q, t_n)
 
 
 class PulseGeneratorCircular(PulseGenerator):
@@ -686,7 +687,7 @@ class PulseGeneratorCircular(PulseGenerator):
             return None
         return i / pulses_per_mm / velocity
 
-    def _interpolation_function(self, ix, iy, iz, ie, ik, i_n):
+    def _interpolation_function(self, ix, iy, iz, ie, iq, i_n):
         """ Calculate interpolation values for linear movement, see super class
             for details. Ergaenzung um weitere Achsen wird hinten angestellt -
             Output und Verarbeitung muss sonst noch ergaenzt werden

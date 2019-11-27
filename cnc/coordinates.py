@@ -1,3 +1,4 @@
+# Aenderung Max 27.11.2019
 from __future__ import division
 import math
 
@@ -6,7 +7,7 @@ class Coordinates(object):
     """ This object represent machine coordinates.
         Machine supports 3 axis, so there are X, Y and Z.
     """
-    def __init__(self, x, y, z, e, k, n):
+    def __init__(self, x, y, z, e, q, n):
         """ Create object.
         :param x: x coordinated.
         :param y: y coordinated.
@@ -16,7 +17,7 @@ class Coordinates(object):
         self.y = round(y, 10)
         self.z = round(z, 10)
         self.e = round(e, 10)
-        self.k = round(k, 10)    # Einfuegen der anderen FHG
+        self.q = round(q, 10)    # Einfuegen der anderen FHG
         self.n = round(n, 10)    # Einfuegen der anderen FHG
 
     def is_zero(self):
@@ -24,7 +25,7 @@ class Coordinates(object):
         :return: boolean value.
         """
         return (self.x == 0.0 and self.y == 0.0 and self.z == 0.0
-                and self.e == 0.0 and self.k == 0.0 and self.n == 0.0)    # Einfuegen der anderen FHG
+                and self.e == 0.0 and self.q == 0.0 and self.n == 0.0)    # Einfuegen der anderen FHG
 
     def is_in_aabb(self, p1, p2):
         """ Check coordinates are in aabb(Axis-Aligned Bounding Box).
@@ -49,10 +50,10 @@ class Coordinates(object):
         :return: Vector length.
         """
         return math.sqrt(self.x * self.x + self.y * self.y + self.z * self.z
-                         + self.e * self.e + self.k * self.k + self.n * self.n)
+                         + self.e * self.e + self.q * self.q + self.n * self.n)
         # Vermututng: 4D Raum mit der Bewegung aller Motoren, Hinzufuegen der neuen Freiheitsgrade und die Ansteuerung ihrer Motoren
 
-    def round(self, base_x, base_y, base_z, base_e, base_k, base_n):
+    def round(self, base_x, base_y, base_z, base_e, base_q, base_n):
         """ Round values to specified base, ie 0.49 with base 0.25 will be 0.5.
         :param base_x: Base for x axis.
         :param base_y: Base for y axis.
@@ -64,7 +65,7 @@ class Coordinates(object):
                            round(self.y / base_y) * base_y,
                            round(self.z / base_z) * base_z,
                            round(self.e / base_e) * base_e,
-                           round(self.k / base_k) * base_k,
+                           round(self.q / base_q) * base_q,
                            round(self.n / base_n) * base_n)
         # Runden der neuen Freiheitsgrade auf eine vorher festgelegte Genauigkeit (base_...)
 
@@ -72,48 +73,48 @@ class Coordinates(object):
         """ Find a maximum value of all values.
         :return: maximum value.
         """
-        return max(self.x, self.y, self.z, self.e, self.k, self.n)
+        return max(self.x, self.y, self.z, self.e, self.q, self.n)
 
     # build in function implementation
     """ Anpassen aller Funktionen an die neuen FHG"""
     def __add__(self, other):
         return Coordinates(self.x + other.x, self.y + other.y,
                            self.z + other.z, self.e + other.e,
-                           self.k + other.k, self.n + other.n)
+                           self.q + other.q, self.n + other.n)
 
     def __sub__(self, other):
         return Coordinates(self.x - other.x, self.y - other.y,
                            self.z - other.z, self.e - other.e,
-                           self.k - other.k, self.n - other.n)
+                           self.q - other.q, self.n - other.n)
 
     def __mul__(self, v):
         """
         @rtype: Coordinates
         """
         return Coordinates(self.x * v, self.y * v, self.z * v, self.e * v,
-                           self.k * v, self.n * v)
+                           self.q * v, self.n * v)
 
     def __div__(self, v):
         """
         @rtype: Coordinates
         """
         return Coordinates(self.x / v, self.y / v, self.z / v, self.e / v,
-                           self.k / v, self.n / v)
+                           self.q / v, self.n / v)
 
     def __truediv__(self, v):
         """
         @rtype: Coordinates
         """
         return Coordinates(self.x / v, self.y / v, self.z / v, self.e / v,
-                           self.k / v, self.n / v)
+                           self.q / v, self.n / v)
 
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y and self.z == other.z \
-               and self.e == other.e and self.k == other.k and self.n == other.n
+               and self.e == other.e and self.q == other.q and self.n == other.n
 
     def __str__(self):
         return '(' + str(self.x) + ', ' + str(self.y) + ', ' + str(self.z) \
-               + ', ' + str(self.e) + ', ' + str(self.k) + '. ' + str(self.n) + ')'
+               + ', ' + str(self.e) + ', ' + str(self.q) + '. ' + str(self.n) + ')'
 
     def __abs__(self):
-        return Coordinates(abs(self.x), abs(self.y), abs(self.z),  abs(self.e), abs(self.k), abs(self.n))
+        return Coordinates(abs(self.x), abs(self.y), abs(self.z),  abs(self.e), abs(self.q), abs(self.n))
