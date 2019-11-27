@@ -1,3 +1,4 @@
+# 27.11.2019 Christian keine aerderungen - also ready fuer tests
 #!/usr/bin/env python
 
 import os

@@ -97,6 +97,7 @@ class TestGCode(unittest.TestCase):
         self.assertEqual(gc.coordinates(self.default, 0).y, 0)
         self.assertEqual(gc.coordinates(self.default, 5).e, 25)
 
+
     def test_whitespaces(self):
         gc = GCode.parse_line("X1 Y2")
         self.assertEqual(gc.coordinates(self.default, 1).x, 1.0)
