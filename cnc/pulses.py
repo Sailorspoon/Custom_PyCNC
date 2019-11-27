@@ -294,9 +294,31 @@ class PulseGeneratorLinear(PulseGenerator):
         # velocity of each axis
         velocity_carriage_mm_per_min = 0.0
         # Geschwindigkeit der carriages bestimmt aus Ableitungen der Carriagebewegung
-        velocity_carriage_mm_per_min.x = (velocity_mm_per_min.x * (radius_heatbed - distance_pivot_tool_mm - tu['x']) - tu['y'] * velocity_mm_per_min.y) / (math.sqrt( - (radius_heatbed - distance_pivot_tool_mm - tu['x']) ** 2 + (length_arm['a']) ** 2 - (tu['y']) ** 2)) + velocity_mm_per_min.z
-        velocity_carriage_mm_per_min.y = velocity_mm_per_min.z - ((((math.sqrt(3)/2) * radius_heatbed) - (radius_heatbed / 2) - (((math.sqrt(3)/2) * distance_pivot_tool_mm) + tu['y']) ** 2 + (distance_pivot_tool_mm / 2 ) - tu['x']) * (-2 ((math.sqrt(3)/2) * distance_pivot_tool_mm + tu['y']) * velocity_mm_per_min.y - velocity_mm_per_min.x)) / (math.sqrt(length_arm['b'] ** 2 - (((math.sqrt(3)/2) * radius_heatbed) - (radius_heatbed / 2) - (((math.sqrt(3)/2) * distance_pivot_tool_mm) + tu['y']) ** 2 + (distance_pivot_tool_mm / 2) - tu['x']) ** 2))
-        velocity_carriage_mm_per_min.z = velocity_mm_per_min.z - ((-((math.sqrt(3) * radius_heatbed) / 2) - (radius_heatbed / 2) - (tu['y'] - ((math.sqrt(3) * distance_pivot_tool_mm) / 2)) ** 2 + (distance_pivot_tool_mm / 2) - tu['x']) * (-2 * (tu['y'] - ((math.sqrt(3) * distance_pivot_tool_mm) / 2)) * velocity_mm_per_min.y - velocity_mm_per_min.x)) / (math.sqrt(length_arm['c'] ** 2 - (-((math.sqrt(3) * radius_heatbed) / 2) - (radius_heatbed / 2) - (tu['y'] - ((math.sqrt(3) * distance_pivot_tool_mm) / 2)) ** 2 + (distance_pivot_tool_mm / 2) - tu['x'])))
+        velocity_carriage_mm_per_min.x = (velocity_mm_per_min.x * (radius_heatbed - distance_pivot_tool_mm - tu['x']) -
+                                          tu['y'] * velocity_mm_per_min.y) / \
+                                         (math.sqrt( - (radius_heatbed - distance_pivot_tool_mm - tu['x']) ** 2 +
+                                                     (length_arm['a']) ** 2 - (tu['y']) ** 2)) + velocity_mm_per_min.z
+        velocity_carriage_mm_per_min.y = velocity_mm_per_min.z - \
+                                         ((((math.sqrt(3)/2) * radius_heatbed) - (radius_heatbed / 2) -
+                                           (((math.sqrt(3)/2) * distance_pivot_tool_mm) + tu['y']) ** 2 +
+                                           (distance_pivot_tool_mm / 2 ) - tu['x']) * (-2
+                                         ((math.sqrt(3)/2)* distance_pivot_tool_mm +
+                                          tu['y']) * velocity_mm_per_min.y - velocity_mm_per_min.x)) / \
+                                         (math.sqrt(length_arm['b'] ** 2 -
+                                                    (((math.sqrt(3)/2) * radius_heatbed) - (radius_heatbed / 2) -
+                                                     (((math.sqrt(3)/2) * distance_pivot_tool_mm) + tu['y']) ** 2 +
+                                                     (distance_pivot_tool_mm / 2) - tu['x']) ** 2))
+        velocity_carriage_mm_per_min.z = velocity_mm_per_min.z - \
+                                         ((-((math.sqrt(3) * radius_heatbed) / 2) - (radius_heatbed / 2) -
+                                           (tu['y'] - ((math.sqrt(3) * distance_pivot_tool_mm) / 2)) ** 2 +
+                                           (distance_pivot_tool_mm / 2) - tu['x']) *
+                                          (-2 * (tu['y'] - ((math.sqrt(3) * distance_pivot_tool_mm) / 2))
+                                           * velocity_mm_per_min.y - velocity_mm_per_min.x)) / \
+                                         (math.sqrt(length_arm['c']
+                                                    ** 2 - (-((math.sqrt(3) * radius_heatbed)
+                                                              / 2) - (radius_heatbed / 2) -
+                                                            (tu['y'] - ((math.sqrt(3) * distance_pivot_tool_mm) / 2))
+                                                            ** 2 + (distance_pivot_tool_mm / 2) - tu['x'])))
 
         distance_total_mm = distance_mm.length()
         self.max_velocity_mm_per_sec = self._adjust_velocity(distance_mm * (
