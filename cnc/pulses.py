@@ -301,9 +301,9 @@ class PulseGeneratorLinear(PulseGenerator):
         velocity_carriage_mm_per_min.y = velocity_mm_per_min.z - \
                                          ((((math.sqrt(3)/2) * radius_heatbed) - (radius_heatbed / 2) -
                                            (((math.sqrt(3)/2) * distance_pivot_tool_mm) + tu['y']) ** 2 +
-                                           (distance_pivot_tool_mm / 2 ) - tu['x']) * (-2
-                                         ((math.sqrt(3)/2)* distance_pivot_tool_mm +
-                                          tu['y']) * velocity_mm_per_min.y - velocity_mm_per_min.x)) / \
+                                           (distance_pivot_tool_mm / 2 ) - tu['x']) *
+                                          (-2 ((math.sqrt(3)/2)* distance_pivot_tool_mm + tu['y']) *
+                                           velocity_mm_per_min.y - velocity_mm_per_min.x)) / \
                                          (math.sqrt(length_arm['b'] ** 2 -
                                                     (((math.sqrt(3)/2) * radius_heatbed) - (radius_heatbed / 2) -
                                                      (((math.sqrt(3)/2) * distance_pivot_tool_mm) + tu['y']) ** 2 +
