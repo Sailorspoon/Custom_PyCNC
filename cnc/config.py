@@ -1,4 +1,4 @@
-# Aenderung Max 27.11.2019
+# Aenderung Max 28.11.2019
 # -----------------------------------------------------------------------------
 # Hardware config.
 
@@ -7,8 +7,13 @@ MAX_VELOCITY_MM_PER_MIN_X = 24000
 MAX_VELOCITY_MM_PER_MIN_Y = 12000
 MAX_VELOCITY_MM_PER_MIN_Z = 600
 MAX_VELOCITY_MM_PER_MIN_E = 1500
+""" Anpassung fuer Druckerkopf"""
 MAX_VELOCITY_MM_PER_MIN_Q = 10000    # Werte muessen spaeter noch angepasst werden
 MAX_VELOCITY_MM_PER_MIN_N = 10000
+""" Anpassung fuer Druckerbett"""
+MAX_VELOCITY_MM_PER_MIN_A = 10000
+MAX_VELOCITY_MM_PER_MIN_B = 10000
+""" Minimale Geschwindigkeit des Niederhalters kann seperat angegeben werden"""
 MIN_VELOCITY_MM_PER_MIN = 1
 # Average velocity for endstop calibration procedure
 CALIBRATION_VELOCITY_MM_PER_MIN = 300
@@ -18,8 +23,12 @@ STEPPER_PULSES_PER_MM_X = 100
 STEPPER_PULSES_PER_MM_Y = 100
 STEPPER_PULSES_PER_MM_Z = 400
 STEPPER_PULSES_PER_MM_E = 150
+""" Anpassung fuer Druckerkopf"""
 STEPPER_PULSES_PER_MM_Q = 200    # Werte muessen spaeter noch angepasst werden
 STEPPER_PULSES_PER_MM_N = 500
+""" Anpassung fuer Druckerbett"""
+STEPPER_PULSES_PER_MM_A = 200
+STEPPER_PULSES_PER_MM_B = 300
 
 # Invert axises direction, by default(False) high level means increase of
 # position. For inverted(True) axis, high level means decrease of position.
@@ -27,8 +36,12 @@ STEPPER_INVERTED_X = True
 STEPPER_INVERTED_Y = False
 STEPPER_INVERTED_Z = False
 STEPPER_INVERTED_E = True
+""" Anpassung fuer Druckerkopf"""
 STEPPER_INVERTED_Q = False    # Ergaenzt um die weiteren FHGe
 STEPPER_INVERTED_N = False
+""" Anpassung fuer Druckerbett"""
+STEPPER_INVERTED_A = False
+STEPPER_INVERTED_B = False
 
 # Invert zero end stops switches. By default(False) low level on input pin
 # means that axis in zero position. For inverted(True) end stops, high level
@@ -41,8 +54,12 @@ ENDSTOP_INVERTED_Z = False  # Auto leveler
 TABLE_SIZE_X_MM = 200
 TABLE_SIZE_Y_MM = 200
 TABLE_SIZE_Z_MM = 220
+""" Maximaler Drehradius -> Anpassung in Matlab erforderlich"""
 foo = 360
-TABLE_SIZE_N_MM = foo     # dieser Wert wird spaeter fuer die Einhaltung des Schwenkradiuses verwendet
+MAX_ROTATION_N_MM = foo     # dieser Wert wird spaeter fuer die Einhaltung des Schwenkradiuses verwendet
+""" Maximaler Kippwinkel -> Anpassung spaeter erforderlich"""
+foo2 = 100
+MAX_TILT_ANGLE = foo2
 
 # Mixed settings.
 STEPPER_PULSE_LENGTH_US = 2
@@ -67,23 +84,32 @@ STEPPER_STEP_PIN_X = 21
 STEPPER_STEP_PIN_Y = 16
 STEPPER_STEP_PIN_Z = 12
 STEPPER_STEP_PIN_E = 8
+""" Pinumbelegung erforderlich"""
 STEPPER_STEP_PIN_Q = 8
 STEPPER_STEP_PIN_N = 8
+""" Pinumbelegung erforderlich"""
+STEPPER_STEP_PIN_A = 8
+STEPPER_STEP_PIN_B = 8
 
 STEPPER_DIR_PIN_X = 20
 STEPPER_DIR_PIN_Y = 19
 STEPPER_DIR_PIN_Z = 13
 STEPPER_DIR_PIN_E = 7
+""" Pinumbelegung erforderlich"""
 STEPPER_DIR_PIN_Q = 7
 STEPPER_DIR_PIN_N = 7
+""" Pinumbelegung erforderlich"""
+STEPPER_DIR_PIN_A = 7
+STEPPER_DIR_PIN_B = 7
 
-SPINDLE_PWM_PIN = 4
+SPINDLE_PWM_PIN = 4    # kann spaeter freigegeben werden
 FAN_PIN = 27
 EXTRUDER_HEATER_PIN = 18
 BED_HEATER_PIN = 22
 EXTRUDER_TEMPERATURE_SENSOR_CHANNEL = 2
 BED_TEMPERATURE_SENSOR_CHANNEL = 1
 
+""" Diese drei werden spaeter frei gegeben"""
 ENDSTOP_PIN_X = 23
 ENDSTOP_PIN_Y = 10
 ENDSTOP_PIN_Z = 25

@@ -1,4 +1,4 @@
-# Aenderung Max 27.11.2019
+# Aenderung Max 28.11.2019
 import time
 
 from cnc.hal_raspberry import rpgpio
@@ -18,8 +18,12 @@ STEP_PIN_MASK_X = 1 << STEPPER_STEP_PIN_X
 STEP_PIN_MASK_Y = 1 << STEPPER_STEP_PIN_Y
 STEP_PIN_MASK_Z = 1 << STEPPER_STEP_PIN_Z
 STEP_PIN_MASK_E = 1 << STEPPER_STEP_PIN_E
+""" Ergaenzung um die PIN_MASKS des Druckerbetts"""
 STEP_PIN_MASK_Q = 1 << STEPPER_STEP_PIN_Q
 STEP_PIN_MASK_N = 1 << STEPPER_STEP_PIN_N
+""" Ergaenzung um die PIN_MASKS des Druckerbetts"""
+STEP_PIN_MASK_A = 1 << STEPPER_STEP_PIN_A
+STEP_PIN_MASK_B = 1 << STEPPER_STEP_PIN_B
 
 
 def init():
@@ -29,15 +33,23 @@ def init():
     gpio.init(STEPPER_STEP_PIN_Y, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_STEP_PIN_Z, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_STEP_PIN_E, rpgpio.GPIO.MODE_OUTPUT)
+    """ Angaben fuer Druckerkopf"""
     gpio.init(STEPPER_STEP_PIN_Q, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_STEP_PIN_N, rpgpio.GPIO.MODE_OUTPUT)
+    """ Angaben fuer Druckerbett"""
+    gpio.init(STEPPER_STEP_PIN_A, rpgpio.GPIO.MODE_OUTPUT)
+    gpio.init(STEPPER_STEP_PIN_B, rpgpio.GPIO.MODE_OUTPUT)
 
     gpio.init(STEPPER_DIR_PIN_X, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_DIR_PIN_Y, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_DIR_PIN_Z, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_DIR_PIN_E, rpgpio.GPIO.MODE_OUTPUT)
+    """ Angaben fuer Druckerkopf"""
     gpio.init(STEPPER_DIR_PIN_Q, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_DIR_PIN_N, rpgpio.GPIO.MODE_OUTPUT)
+    """ Angaben fuer Druckerbett"""
+    gpio.init(STEPPER_DIR_PIN_A, rpgpio.GPIO.MODE_OUTPUT)
+    gpio.init(STEPPER_DIR_PIN_B, rpgpio.GPIO.MODE_OUTPUT)
 
     gpio.init(ENDSTOP_PIN_X, rpgpio.GPIO.MODE_INPUT_PULLUP)
     gpio.init(ENDSTOP_PIN_Y, rpgpio.GPIO.MODE_INPUT_PULLUP)
@@ -122,6 +134,7 @@ def disable_steppers():
 
 
 def __calibrate_private(x, y, z, invert):
+    """ ACHTUNG muss spaeter noch geaendert werden, da nur noch ein endstop pro Achse benoetigt"""
     if invert:
         stepper_inverted_x = not STEPPER_INVERTED_X
         stepper_inverted_y = not STEPPER_INVERTED_Y
@@ -244,7 +257,7 @@ def move(generator):
     """ Variable k zu k00 geaendert, um Doppelbelegung mit koFi Extruder zu vermeiden"""
     k00 = 0
     k0 = 0
-    for direction, tx, ty, tz, te, tq, tn in generator:
+    for direction, tx, ty, tz, te, tq, tn, ta, tb in generator:
         if current_cb is not None:
             while dma.current_address() + bytes_per_iter >= current_cb:
                 time.sleep(0.001)
@@ -280,11 +293,19 @@ def move(generator):
                 pins_to_clear |= 1 << STEPPER_DIR_PIN_N
             elif tn < 0:
                 pins_to_set |= 1 << STEPPER_DIR_PIN_N
+            if ta > 0:
+                pins_to_clear |= 1 << STEPPER_DIR_PIN_A
+            elif ta < 0:
+                pins_to_set |= 1 << STEPPER_DIR_PIN_A
+            if tb > 0:
+                pins_to_clear |= 1 << STEPPER_DIR_PIN_B
+            elif tb < 0:
+                pins_to_set |= 1 << STEPPER_DIR_PIN_B
             dma.add_set_clear(pins_to_set, pins_to_clear)
             continue
         pins = 0
         m = None
-        for i in (tx, ty, tz, te):
+        for i in (tx, ty, tz, te, tq, tn, ta, tb):
             if i is not None and (m is None or i < m):
                 m = i
         k00 = int(round(m * US_IN_SECONDS))
@@ -300,6 +321,10 @@ def move(generator):
             pins |= STEP_PIN_MASK_Q
         if tn is not None:
             pins |= STEP_PIN_MASK_N
+        if ta is not None:
+            pins |= STEP_PIN_MASK_A
+        if tb is not None:
+            pins |= STEP_PIN_MASK_B
         if k00 - prev > 0:
             dma.add_delay(k00 - prev)
         dma.add_pulse(pins, STEPPER_PULSE_LENGTH_US)

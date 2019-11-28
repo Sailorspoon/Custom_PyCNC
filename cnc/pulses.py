@@ -1,4 +1,4 @@
-# Aenderung Max 27.11.2019
+# Aenderung Max 28.11.2019
 # coding=utf-8
 from __future__ import division
 import logging
@@ -44,6 +44,9 @@ class PulseGenerator(object):
         self._iteration_y = 0
         self._iteration_z = 0
         self._iteration_e = 0
+        self._iteration_q = 0
+        self._iteration_a = 0
+        self._iteration_b = 0
         self._iteration_direction = None
         self._acceleration_time_s = 0.0
         self._linear_time_s = 0.0
@@ -73,6 +76,18 @@ class PulseGenerator(object):
         if velocity_mm_sec.e * SECONDS_IN_MINUTE > MAX_VELOCITY_MM_PER_MIN_E:
             var_const = min(var_const, MAX_VELOCITY_MM_PER_MIN_E
                             / velocity_mm_sec.e / SECONDS_IN_MINUTE)
+        if velocity_mm_sec.q * SECONDS_IN_MINUTE > MAX_VELOCITY_MM_PER_MIN_Q:
+            var_const = min(var_const, MAX_VELOCITY_MM_PER_MIN_Q
+                            / velocity_mm_sec.q / SECONDS_IN_MINUTE)
+        if velocity_mm_sec.n * SECONDS_IN_MINUTE > MAX_VELOCITY_MM_PER_MIN_N:
+            var_const = min(var_const, MAX_VELOCITY_MM_PER_MIN_N
+                            / velocity_mm_sec.n / SECONDS_IN_MINUTE)
+        if velocity_mm_sec.a * SECONDS_IN_MINUTE > MAX_VELOCITY_MM_PER_MIN_A:
+            var_const = min(var_const, MAX_VELOCITY_MM_PER_MIN_A
+                            / velocity_mm_sec.a / SECONDS_IN_MINUTE)
+        if velocity_mm_sec.b * SECONDS_IN_MINUTE > MAX_VELOCITY_MM_PER_MIN_B:
+            var_const = min(var_const, MAX_VELOCITY_MM_PER_MIN_B
+                            / velocity_mm_sec.b / SECONDS_IN_MINUTE)
         if var_const != 1.0:
             logging.warning("Out of speed, multiply velocity by {}".format(var_const))
         return velocity_mm_sec * var_const
@@ -93,7 +108,7 @@ class PulseGenerator(object):
         """
         raise NotImplemented
 
-    def _interpolation_function(self, ix, iy, iz, ie, iq, i_n):
+    def _interpolation_function(self, ix, iy, iz, ie, iq, i_n, ia, ib):
         """ Get function for interpolation path. This function should returned
             values as it is uniform movement. There is only one trick, function
             must be expressed in terms of position, i.e. t = S / V for linear,
@@ -104,6 +119,8 @@ class PulseGenerator(object):
         :param ie: number of pulse for E axis.
         :param iq: number of pulses for koFi Extruder
         :param i_n: number of pulses for rotary degree of freedom
+        :param ia: number of pulses for tilting bed
+        :param ib: number of pulses for rotary degree of freedom
         :return: Two tuples. First is tuple is directions for each axis,
                  positive means forward, negative means reverse. Second is
                  tuple of times for each axis in us or None if movement for
@@ -126,6 +143,8 @@ class PulseGenerator(object):
         self._iteration_e = 0
         self._iteration_q = 0
         self._iteration_n = 0
+        self._iteration_a = 0
+        self._iteration_b = 0
         self._iteration_direction = None
         logging.debug(', '.join("%s: %s" % i for i in vars(self).items()))
         return self
@@ -181,14 +200,15 @@ class PulseGenerator(object):
                  left StopIteration will be raised.
                  Nachtrag - Ergaenzt für die beiden zusaetzlichen Achsen
         """
-        direction, (tx, ty, tz, te, tq, tn) = \
+        direction, (tx, ty, tz, te, tq, tn, ta, tb) = \
             self._interpolation_function(self._iteration_x, self._iteration_y,
                                          self._iteration_z, self._iteration_e,
-                                         self._iteration_q, self._iteration_n)
+                                         self._iteration_q, self._iteration_n,
+                                         self._iteration_a, self._iteration_b)
         # check if direction update:
         if direction != self._iteration_direction:
             self._iteration_direction = direction
-            dir_x, dir_y, dir_z, dir_e, dir_q, dir_n = direction
+            dir_x, dir_y, dir_z, dir_e, dir_q, dir_n, dir_a, dir_b = direction
             if STEPPER_INVERTED_X:
                 dir_x = -dir_x
             if STEPPER_INVERTED_Y:
@@ -201,14 +221,19 @@ class PulseGenerator(object):
                 dir_q = -dir_q
             if STEPPER_INVERTED_N:
                 dir_n = -dir_n
-            return True, dir_x, dir_y, dir_z, dir_e, dir_q, dir_n
+            if STEPPER_INVERTED_A:
+                dir_a = -dir_a
+            if STEPPER_INVERTED_B:
+                dir_b = -dir_b
+            return True, dir_x, dir_y, dir_z, dir_e, dir_q, dir_n, dir_a, dir_b
         # check condition to stop
-        if tx is None and ty is None and tz is None and te is None and tq is None and tn is None:
+        if tx is None and ty is None and tz is None and te is None and tq is None and tn is None and \
+                ta is None and tb is None:
             raise StopIteration
 
         # convert to real time
         m = None
-        for i in (tx, ty, tz, te, tq, tn):  # Ergaenzt um Zeiten für die weiteren FHGe
+        for i in (tx, ty, tz, te, tq, tn, ta, tb):  # Ergaenzt um Zeiten für die weiteren FHGe
             if i is not None and (m is None or i < m):
                 m = i
         am = self._to_accelerated_time(m)
@@ -237,7 +262,7 @@ class PulseGenerator(object):
             else:
                 te = am
                 self._iteration_e += 1
-        """ Ergaenzt um weitere FHGe (kopiert von oben)"""
+        """ Ergaenzt um weitere Druckkopf FHGe (kopiert von oben)"""
         if tq is not None:
             if tq > m:
                 tq = None
@@ -250,8 +275,21 @@ class PulseGenerator(object):
             else:
                 tn = am
                 self._iteration_n += 1
+        """ Ergaenzt um Druckbett FHGe (kopiert von oben)"""
+        if ta is not None:
+            if ta > m:
+                ta = None
+            else:
+                ta = am
+                self._iteration_a += 1
+        if tb is not None:
+            if tb > m:
+                tb = None
+            else:
+                tb = am
+                self._iteration_b += 1
 
-        return False, tx, ty, tz, te, tq, tn
+        return False, tx, ty, tz, te, tq, tn, ta, tb
 
     def total_time_s(self):
         """ Get total time for movement.
@@ -312,18 +350,21 @@ class PulseGeneratorLinear(PulseGenerator):
         self._total_pulses_y = round(distance_mm.y * STEPPER_PULSES_PER_MM_Y)
         self._total_pulses_z = round(distance_mm.z * STEPPER_PULSES_PER_MM_Z)
         self._total_pulses_e = round(distance_mm.e * STEPPER_PULSES_PER_MM_E)
-        self._total_pulses_q = round(distance_mm.q * STEPPER_PULSES_PER_MM_Q)
-        self._total_pulses_n = round(distance_mm.n * STEPPER_PULSES_PER_MM_N)
-        """Ergaenzung um die Totalpulses in k und n - Richtung (siehe config.py für Kalibrierung und hal_virtual.py und
+        """ Ergaenzung um die Totalpulses in k und n - Richtung (siehe config.py für Kalibrierung und hal_virtual.py und
         gmachine)"""
         self._total_pulses_q = round(distance_mm.q - STEPPER_PULSES_PER_MM_Q)
         self._total_pulses_n = round(distance_mm.n - STEPPER_PULSES_PER_MM_N)
+        """ Ergaenzung um die Totalpulses in a und b - Richtung"""
+        self._total_pulses_a = round(distance_mm.a * STEPPER_PULSES_PER_MM_A)
+        self._total_pulses_b = round(distance_mm.b * STEPPER_PULSES_PER_MM_B)
         self._direction = (math.copysign(1, delta_mm.x),
                            math.copysign(1, delta_mm.y),
                            math.copysign(1, delta_mm.z),
                            math.copysign(1, delta_mm.e),
                            math.copysign(1, delta_mm.q),
-                           math.copysign(1, delta_mm.n))
+                           math.copysign(1, delta_mm.n),
+                           math.copysign(1, delta_mm.a),
+                           math.copysign(1, delta_mm.b))
 
     def _get_movement_parameters(self):
         """ Return movement parameters, see super class for details.
@@ -342,7 +383,7 @@ class PulseGeneratorLinear(PulseGenerator):
         # Linear movement, S = V * t -> t = S / V
         return i / pulses_per_mm / velocity_mm_per_sec
 
-    def _interpolation_function(self, ix, iy, iz, ie, iq, i_n):
+    def _interpolation_function(self, ix, iy, iz, ie, iq, i_n, ia, ib):
         """ Calculate interpolation values for linear movement, see super class
             for details.
         """
@@ -358,7 +399,11 @@ class PulseGeneratorLinear(PulseGenerator):
                             self.max_velocity_mm_per_sec.q)
         t_n = self.__linear(i_n, STEPPER_PULSES_PER_MM_N, self._total_pulses_n,
                             self.max_velocity_mm_per_sec.n)
-        return self._direction, (t_x, t_y, t_z, t_e, t_q, t_n)
+        t_a = self.__linear(ia, STEPPER_PULSES_PER_MM_A, self._total_pulses_a,
+                            self.max_velocity_mm_per_sec.a)
+        t_b = self.__linear(ib, STEPPER_PULSES_PER_MM_B, self._total_pulses_b,
+                            self.max_velocity_mm_per_sec.b)
+        return self._direction, (t_x, t_y, t_z, t_e, t_q, t_n, t_a, t_b)
 
 
 class PulseGeneratorCircular(PulseGenerator):
@@ -418,14 +463,14 @@ class PulseGeneratorCircular(PulseGenerator):
         # adjust radius to fit into axises step.
         radius = (round(math.sqrt(sa * sa + sb * sb) * min(apm, bpm))
                   / min(apm, bpm))
-        radius_a = (round(math.sqrt(sa * sa + sb * sb) * apm) / apm)
-        radius_b = (round(math.sqrt(sa * sa + sb * sb) * bpm) / bpm)
-        self._radius_a2 = radius_a * radius_a
-        self._radius_b2 = radius_b * radius_b
-        self._radius_a_pulses = int(radius * apm)
-        self._radius_b_pulses = int(radius * bpm)
-        self._start_a_pulses = int(sa * apm)
-        self._start_b_pulses = int(sb * bpm)
+        radius_ac = (round(math.sqrt(sa * sa + sb * sb) * apm) / apm)
+        radius_bc = (round(math.sqrt(sa * sa + sb * sb) * bpm) / bpm)
+        self._radius_a2 = radius_ac * radius_ac
+        self._radius_b2 = radius_bc * radius_bc
+        self._radius_ac_pulses = int(radius * apm)
+        self._radius_bc_pulses = int(radius * bpm)
+        self._start_ac_pulses = int(sa * apm)
+        self._start_bc_pulses = int(sb * bpm)
         assert (round(math.sqrt(ea * ea + eb * eb) * min(apm, bpm))
                 / min(apm, bpm) == radius), "Wrong end point"
 
@@ -439,26 +484,26 @@ class PulseGeneratorCircular(PulseGenerator):
             delta_angle -= 2 * math.pi
         if direction == CW:
             if start_angle >= math.pi:
-                self._dir_b = 1
+                self._dir_bc = 1
             else:
-                self._dir_b = -1
+                self._dir_bc = -1
             if math.pi / 2 <= start_angle < 3 * math.pi / 2:
                 self._dir_a = -1
             else:
-                self._dir_a = 1
+                self._dir_ac = 1
         elif direction == CCW:
             if 0.0 < start_angle <= math.pi:
-                self._dir_b = 1
+                self._dir_bc = 1
             else:
-                self._dir_b = -1
+                self._dir_bc = -1
             if start_angle <= math.pi / 2 or start_angle > 3 * math.pi / 2:
-                self._dir_a = -1
+                self._dir_ac = -1
             else:
-                self._dir_a = 1
-        self._side_a = (self._start_b_pulses < 0
-                        or (self._start_b_pulses == 0 and self._dir_b < 0))
-        self._side_b = (self._start_a_pulses < 0
-                        or (self._start_a_pulses == 0 and self._dir_a < 0))
+                self._dir_ac = 1
+        self._side_ac = (self._start_bc_pulses < 0
+                         or (self._start_bc_pulses == 0 and self._dir_bc < 0))
+        self._side_bc = (self._start_ac_pulses < 0
+                         or (self._start_ac_pulses == 0 and self._dir_ac < 0))
         self._start_angle = start_angle
         logging.debug("start angle {}, end angle {}, delta {}".format(
             start_angle * 180.0 / math.pi,
@@ -470,20 +515,20 @@ class PulseGeneratorCircular(PulseGenerator):
         # calculate values for interpolation.
 
         # calculate travel distance for axis in circular move.
-        self._iterations_a = 0
-        self._iterations_b = 0
+        self._iterations_ac = 0
+        self._iterations_bc = 0
         end_angle_m = end_angle
         if start_angle >= end_angle:
             end_angle_m += 2 * math.pi
         quarter_start = int(start_angle / (math.pi / 2.0))
         quarter_end = int(end_angle_m / (math.pi / 2.0))
         if quarter_end - quarter_start >= 4:
-            self._iterations_a = 4 * round(radius * apm)
-            self._iterations_b = 4 * round(radius * bpm)
+            self._iterations_ac = 4 * round(radius * apm)
+            self._iterations_bc = 4 * round(radius * bpm)
         else:
             if quarter_start == quarter_end:
-                self._iterations_a = round(abs(sa - ea) * apm)
-                self._iterations_b = round(abs(sb - eb) * bpm)
+                self._iterations_ac = round(abs(sa - ea) * apm)
+                self._iterations_bc = round(abs(sb - eb) * bpm)
             else:
                 for r in range(quarter_start, quarter_end + 1):
                     i = r
@@ -491,34 +536,34 @@ class PulseGeneratorCircular(PulseGenerator):
                         i -= 4
                     if r == quarter_start:
                         if i == 0 or i == 2:
-                            self._iterations_a += round(radius * apm) \
-                                                  - round(abs(sa) * apm)
+                            self._iterations_ac += round(radius * apm) \
+                                                   - round(abs(sa) * apm)
                         else:
-                            self._iterations_a += round(abs(sa) * apm)
+                            self._iterations_ac += round(abs(sa) * apm)
                         if i == 1 or i == 3:
-                            self._iterations_b += round(radius * bpm) \
-                                                  - round(abs(sb) * bpm)
+                            self._iterations_bc += round(radius * bpm) \
+                                                   - round(abs(sb) * bpm)
                         else:
-                            self._iterations_b += round(abs(sb) * bpm)
+                            self._iterations_bc += round(abs(sb) * bpm)
                     elif r == quarter_end:
                         if i == 0 or i == 2:
-                            self._iterations_a += round(abs(ea) * apm)
+                            self._iterations_ac += round(abs(ea) * apm)
                         else:
-                            self._iterations_a += round(radius * apm) \
-                                                  - round(abs(ea) * apm)
+                            self._iterations_ac += round(radius * apm) \
+                                                   - round(abs(ea) * apm)
                         if i == 1 or i == 3:
-                            self._iterations_b += round(abs(eb) * bpm)
+                            self._iterations_bc += round(abs(eb) * bpm)
                         else:
-                            self._iterations_b += round(radius * bpm) \
-                                                  - round(abs(eb) * bpm)
+                            self._iterations_bc += round(radius * bpm) \
+                                                   - round(abs(eb) * bpm)
                     else:
-                        self._iterations_a += round(radius * apm)
-                        self._iterations_b += round(radius * bpm)
+                        self._iterations_ac += round(radius * apm)
+                        self._iterations_bc += round(radius * bpm)
             if direction == CCW:
-                self._iterations_a = (4 * round(radius * apm)
-                                      - self._iterations_a)
-                self._iterations_b = (4 * round(radius * bpm)
-                                      - self._iterations_b)
+                self._iterations_ac = (4 * round(radius * apm)
+                                       - self._iterations_ac)
+                self._iterations_bc = (4 * round(radius * bpm)
+                                       - self._iterations_bc)
 
         arc = delta_angle * radius
         e2 = delta.e * delta.e
@@ -560,21 +605,21 @@ class PulseGeneratorCircular(PulseGenerator):
         if self._plane == PLANE_XY:
             self.max_velocity_mm_per_sec = self._adjust_velocity(
                 Coordinates(circular_velocity, circular_velocity,
-                            self._velocity_3rd, self._e_velocity, 0, 0))    # dummy erstmal 0, spaeter anpassen
+                            self._velocity_3rd, self._e_velocity, 0, 0, 0, 0))  # dummy erstmal 0, spaeter anpassen
             circular_velocity = min(self.max_velocity_mm_per_sec.x,
                                     self.max_velocity_mm_per_sec.y)
             self._velocity_3rd = self.max_velocity_mm_per_sec.z
         elif self._plane == PLANE_YZ:
             self.max_velocity_mm_per_sec = self._adjust_velocity(
                 Coordinates(self._velocity_3rd, circular_velocity,
-                            circular_velocity, self._e_velocity, 0, 0))
+                            circular_velocity, self._e_velocity, 0, 0, 0, 0))
             circular_velocity = min(self.max_velocity_mm_per_sec.y,
                                     self.max_velocity_mm_per_sec.z)
             self._velocity_3rd = self.max_velocity_mm_per_sec.x
         elif self._plane == PLANE_ZX:
             self.max_velocity_mm_per_sec = self._adjust_velocity(
                 Coordinates(circular_velocity, self._velocity_3rd,
-                            circular_velocity, self._e_velocity, 0, 0))
+                            circular_velocity, self._e_velocity, 0, 0, 0, 0))
             circular_velocity = min(self.max_velocity_mm_per_sec.z,
                                     self.max_velocity_mm_per_sec.x)
             self._velocity_3rd = self.max_velocity_mm_per_sec.y
@@ -585,7 +630,7 @@ class PulseGeneratorCircular(PulseGenerator):
                                     / STEPPER_MAX_ACCELERATION_MM_PER_S2)
         if full_length == 0:
             self.linear_time_s = 0.0
-            self.max_velocity_mm_per_sec = Coordinates(0, 0, 0, 0, 0, 0)
+            self.max_velocity_mm_per_sec = Coordinates(0, 0, 0, 0, 0, 0, 0, 0)
         elif STEPPER_MAX_ACCELERATION_MM_PER_S2 * self.acceleration_time_s \
                 ** 2 > full_length:
             self.acceleration_time_s = \
@@ -608,10 +653,10 @@ class PulseGeneratorCircular(PulseGenerator):
                 + self._e_velocity ** 2)
 
     @staticmethod
-    def __angle(a, b):
+    def __angle(ac, bc):
         # Calculate angle of entry point (a, b) of circle with center in (0,0)
-        angle = math.acos(b / math.sqrt(a * a + b * b))
-        if a < 0:
+        angle = math.acos(bc / math.sqrt(ac * ac + bc * bc))
+        if ac < 0:
             return 2 * math.pi - angle
         return angle
 
@@ -639,8 +684,10 @@ class PulseGeneratorCircular(PulseGenerator):
             side = not side
         return np, direction, side
 
-    def __circular_find_time(self, a, b):
-        angle = self.__angle(a, b)
+    """ Umbenennen der Variablen, um Doppelbelegung mit der Achse A und B zu vermeiden"""
+
+    def __circular_find_time(self, ac, bc):
+        angle = self.__angle(ac, bc)
         if self._direction == CW:
             delta_angle = angle - self._start_angle
         else:
@@ -649,37 +696,37 @@ class PulseGeneratorCircular(PulseGenerator):
             delta_angle += 2 * math.pi
         return self._r_div_v * delta_angle
 
-    def __circular_a(self, i, pulses_per_mm):
-        if i >= self._iterations_a:
-            return self._dir_a, None
-        a, direction, side = \
-            self.__circular_helper(self._start_a_pulses, i + 1,
-                                   self._radius_a_pulses,
-                                   self._side_a, self._dir_a)
-        a /= pulses_per_mm
+    def __circular_ac(self, i, pulses_per_mm):
+        if i >= self._iterations_ac:
+            return self._dir_ac, None
+        ac, direction, side = \
+            self.__circular_helper(self._start_ac_pulses, i + 1,
+                                   self._radius_ac_pulses,
+                                   self._side_ac, self._dir_ac)
+        ac /= pulses_per_mm
         # first and last item can be slightly out of bound due float precision
-        if i + 1 == self._iterations_a:
+        if i + 1 == self._iterations_ac:
             return direction, self._r_div_v * self._delta_angle
-        b = math.sqrt(self._radius_a2 - a * a)
+        bc = math.sqrt(self._radius_a2 - ac * ac)
         if side:
-            b = -b
-        return direction, self.__circular_find_time(a, b)
+            bc = -bc
+        return direction, self.__circular_find_time(ac, bc)
 
-    def __circular_b(self, i, pulses_per_mm):
-        if i >= self._iterations_b:
-            return self._dir_b, None
-        b, direction, side = \
-            self.__circular_helper(self._start_b_pulses, i + 1,
-                                   self._radius_b_pulses,
-                                   self._side_b, self._dir_b)
-        b /= pulses_per_mm
+    def __circular_bc(self, i, pulses_per_mm):
+        if i >= self._iterations_bc:
+            return self._dir_bc, None
+        bc, direction, side = \
+            self.__circular_helper(self._start_bc_pulses, i + 1,
+                                   self._radius_bc_pulses,
+                                   self._side_bc, self._dir_bc)
+        bc /= pulses_per_mm
         # first and last item can be slightly out of bound due float precision
-        if i + 1 == self._iterations_b:
+        if i + 1 == self._iterations_bc:
             return direction, self._r_div_v * self._delta_angle
-        a = math.sqrt(self._radius_b2 - b * b)
+        ac = math.sqrt(self._radius_b2 - bc * bc)
         if side:
-            a = -a
-        return direction, self.__circular_find_time(a, b)
+            ac = -ac
+        return direction, self.__circular_find_time(ac, bc)
 
     @staticmethod
     def __linear(i, total_i, pulses_per_mm, velocity):
@@ -687,26 +734,26 @@ class PulseGeneratorCircular(PulseGenerator):
             return None
         return i / pulses_per_mm / velocity
 
-    def _interpolation_function(self, ix, iy, iz, ie, iq, i_n):
+    def _interpolation_function(self, ix, iy, iz, ie, iq, i_n, ia, ib):
         """ Calculate interpolation values for linear movement, see super class
             for details. Ergaenzung um weitere Achsen wird hinten angestellt -
             Output und Verarbeitung muss sonst noch ergaenzt werden
         """
         if self._plane == PLANE_XY:
-            dx, tx = self.__circular_a(ix, STEPPER_PULSES_PER_MM_X)
-            dy, ty = self.__circular_b(iy, STEPPER_PULSES_PER_MM_Y)
+            dx, tx = self.__circular_ac(ix, STEPPER_PULSES_PER_MM_X)
+            dy, ty = self.__circular_bc(iy, STEPPER_PULSES_PER_MM_Y)
             tz = self.__linear(iz, self._iterations_3rd,
                                STEPPER_PULSES_PER_MM_Z, self._velocity_3rd)
             dz = self._third_dir
         elif self._plane == PLANE_YZ:
-            dy, ty = self.__circular_a(iy, STEPPER_PULSES_PER_MM_Y)
-            dz, tz = self.__circular_b(iz, STEPPER_PULSES_PER_MM_Z)
+            dy, ty = self.__circular_ac(iy, STEPPER_PULSES_PER_MM_Y)
+            dz, tz = self.__circular_bc(iz, STEPPER_PULSES_PER_MM_Z)
             tx = self.__linear(ix, self._iterations_3rd,
                                STEPPER_PULSES_PER_MM_X, self._velocity_3rd)
             dx = self._third_dir
         else:  # self._plane == PLANE_ZX:
-            dz, tz = self.__circular_a(iz, STEPPER_PULSES_PER_MM_Z)
-            dx, tx = self.__circular_b(ix, STEPPER_PULSES_PER_MM_X)
+            dz, tz = self.__circular_ac(iz, STEPPER_PULSES_PER_MM_Z)
+            dx, tx = self.__circular_bc(ix, STEPPER_PULSES_PER_MM_X)
             ty = self.__linear(iy, self._iterations_3rd,
                                STEPPER_PULSES_PER_MM_Y, self._velocity_3rd)
             dy = self._third_dir

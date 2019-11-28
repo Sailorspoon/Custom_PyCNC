@@ -1,4 +1,4 @@
-# Aenderung Max 27.11.2019
+# Aenderung Max 28.11.2019
 from __future__ import division
 
 import cnc.logging_config as logging_config
@@ -27,7 +27,7 @@ class GMachine(object):
     def __init__(self):
         """ Initialization.
         """
-        self._position = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)    # Ergaenzung aus coordinates.py
+        self._position = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)  # Ergaenzung aus coordinates.py
         # init variables
         self._velocity = 0
         self._spindle_rpm = 0
@@ -58,9 +58,11 @@ class GMachine(object):
                              MAX_VELOCITY_MM_PER_MIN_Z,
                              MAX_VELOCITY_MM_PER_MIN_E,
                              MAX_VELOCITY_MM_PER_MIN_Q,
-                             MAX_VELOCITY_MM_PER_MIN_N)
+                             MAX_VELOCITY_MM_PER_MIN_N,
+                             MAX_VELOCITY_MM_PER_MIN_A,
+                             MAX_VELOCITY_MM_PER_MIN_B)
         self._spindle_rpm = 1000
-        self._local = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        self._local = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         self._convertCoordinates = 1.0
         self._absoluteCoordinates = True
         self._plane = PLANE_XY
@@ -103,9 +105,9 @@ class GMachine(object):
 
     def __check_delta(self, delta):
         pos = self._position + delta
-        if not pos.is_in_aabb(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                              Coordinates(TABLE_SIZE_X_MM, TABLE_SIZE_Y_MM,    # hier nur 3D Achsen relevant
-                                          TABLE_SIZE_Z_MM, 0, 0, TABLE_SIZE_N_MM)):
+        if not pos.is_in_aabb(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+                              Coordinates(TABLE_SIZE_X_MM, TABLE_SIZE_Y_MM,  # hier nur 3D Achsen relevant
+                                          TABLE_SIZE_Z_MM, 0, 0, MAX_ROTATION_N_MM, MAX_TILT_ANGLE, 0)):
             raise GMachineException("out of effective area")
 
     # noinspection PyMethodMayBeStatic
@@ -116,7 +118,9 @@ class GMachine(object):
                 or max_velocity.z > MAX_VELOCITY_MM_PER_MIN_Z \
                 or max_velocity.e > MAX_VELOCITY_MM_PER_MIN_E \
                 or max_velocity.q > MAX_VELOCITY_MM_PER_MIN_Q \
-                or max_velocity.n > MAX_VELOCITY_MM_PER_MIN_N:
+                or max_velocity.n > MAX_VELOCITY_MM_PER_MIN_N \
+                or max_velocity.a > MAX_VELOCITY_MM_PER_MIN_A \
+                or max_velocity.b > MAX_VELOCITY_MM_PER_MIN_B:
             raise GMachineException("out of maximum speed")
 
     def _move_linear(self, delta, velocity):
@@ -207,7 +211,7 @@ class GMachine(object):
                               1.0 / STEPPER_PULSES_PER_MM_E)
         self.__check_delta(delta)
         # get delta vector and put it on circle
-        circle_end = Coordinates(0, 0, 0, 0, 0, 0)
+        circle_end = Coordinates(0, 0, 0, 0, 0, 0, 0, 0)
         if self._plane == PLANE_XY:
             circle_end.x, circle_end.y = \
                 self.__adjust_circle(delta.x, delta.y, radius.x, radius.y,
@@ -236,7 +240,9 @@ class GMachine(object):
                                       1.0 / STEPPER_PULSES_PER_MM_Z,
                                       1.0 / STEPPER_PULSES_PER_MM_E,
                                       1.0 / STEPPER_PULSES_PER_MM_Q,
-                                      1.0 / STEPPER_PULSES_PER_MM_N)
+                                      1.0 / STEPPER_PULSES_PER_MM_N,
+                                      1.0 / STEPPER_PULSES_PER_MM_A,
+                                      1.0 / STEPPER_PULSES_PER_MM_B)
         logging.info("Moving circularly {} {} {} with radius {}"
                      " and velocity {}".format(self._plane, circle_end,
                                                direction, radius, velocity))
@@ -265,17 +271,20 @@ class GMachine(object):
         :param z: boolean, move Z axis to zero
         """
         if x and not y:
-            self._move_linear(Coordinates(-self._position.x, 0, 0, 0, 0, 0),
+            self._move_linear(Coordinates(-self._position.x, 0, 0, 0, 0, 0, 0, 0),
                               MAX_VELOCITY_MM_PER_MIN_X)
         elif y and not x:
-            self._move_linear(Coordinates(0, -self._position.y, 0, 0, 0, 0),
+            self._move_linear(Coordinates(0, -self._position.y, 0, 0, 0, 0, 0, 0),
                               MAX_VELOCITY_MM_PER_MIN_X)
         elif x and y:
-            d = Coordinates(-self._position.x, -self._position.y, 0, 0, 0, 0)
+            d = Coordinates(-self._position.x, -self._position.y, 0, 0, 0, 0, 0, 0)
             self._move_linear(d, min(MAX_VELOCITY_MM_PER_MIN_X,
                                      MAX_VELOCITY_MM_PER_MIN_Y))
+            """ Hier spaeter noch einfuegen:  -safe_position_z = max z
+                                              -koFi extruder muss nachextrudieren
+                                              -Druckbett bleibt stehen"""
         if z:
-            d = Coordinates(0, 0, -self._position.z, 0, 0, 0)
+            d = Coordinates(0, 0, -self._position.z, 0, 0, 0, 0, 0)
             self._move_linear(d, MAX_VELOCITY_MM_PER_MIN_Z)
 
     def position(self):
@@ -338,11 +347,11 @@ class GMachine(object):
             coord = coord + self._local
             delta = coord - self._position
         else:
-            delta = gcode.coordinates(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            delta = gcode.coordinates(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
                                       self._convertCoordinates)
             # coord = self._position + delta
         velocity = gcode.get('F', self._velocity)
-        radius = gcode.radius(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+        radius = gcode.radius(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
                               self._convertCoordinates)
         # check parameters
         if velocity < MIN_VELOCITY_MM_PER_MIN:
@@ -352,10 +361,10 @@ class GMachine(object):
             vl = max(MAX_VELOCITY_MM_PER_MIN_X,
                      MAX_VELOCITY_MM_PER_MIN_Y,
                      MAX_VELOCITY_MM_PER_MIN_Z,
-                     MAX_VELOCITY_MM_PER_MIN_E)    # hier keine Ergaenzung der anderen Motoren, da nicht notwendig
-            l = delta.length()
-            if l > 0:    # hier alle Achsen miteinbeziehen
-                proportion = abs(delta) / l
+                     MAX_VELOCITY_MM_PER_MIN_E)  # hier keine Ergaenzung der anderen Motoren, da nicht notwendig
+            length_delta = delta.length()
+            if length_delta > 0:  # hier alle Achsen miteinbeziehen
+                proportion = abs(delta) / length_delta
                 if proportion.x > 0:
                     v = int(MAX_VELOCITY_MM_PER_MIN_X / proportion.x)
                     if v < vl:
@@ -379,6 +388,14 @@ class GMachine(object):
                         vl = v
                 if proportion.n > 0:
                     v = int(MAX_VELOCITY_MM_PER_MIN_N / proportion.n)
+                    if v < vl:
+                        """ Ergaenzung der Druckbett FHGe"""
+                if proportion.a > 0:
+                    v = int(MAX_VELOCITY_MM_PER_MIN_A / proportion.a)
+                    if v < vl:
+                        vl = v
+                if proportion.b > 0:
+                    v = int(MAX_VELOCITY_MM_PER_MIN_B / proportion.b)
                     if v < vl:
                         vl = v
             self._move_linear(delta, vl)
@@ -408,15 +425,15 @@ class GMachine(object):
             self._convertCoordinates = 1.0
         elif c == 'G28':  # home
             """ homing des Drehmechanismus erwuenscht"""
-            axises = gcode.has('X'), gcode.has('Y'), gcode.has('Z'), gcode.has('N')
-            if axises == (False, False, False, False):
-                axises = True, True, True, True
+            axises = gcode.has('X'), gcode.has('Y'), gcode.has('Z'), gcode.has('N'), gcode.has('A'), gcode.has('B')
+            if axises == (False, False, False, False, False, False):
+                axises = True, True, True, True, True, True
             self.safe_zero(*axises)
             hal.join()
             if not hal.calibrate(*axises):
                 raise GMachineException("failed to calibrate")
         elif c == 'G53':  # switch to machine coords
-            self._local = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+            self._local = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         elif c == 'G90':  # switch to absolute coords
             self._absoluteCoordinates = True
         elif c == 'G91':  # switch to relative coords
@@ -429,7 +446,9 @@ class GMachine(object):
                                 self._position.z - self._local.z,
                                 self._position.e - self._local.e,
                                 self._position.q - self._local.q,
-                                self._position.n - self._local.n),
+                                self._position.n - self._local.n,
+                                self._position.a - self._local.a,
+                                self._position.b - self._local.b),
                     self._convertCoordinates)
             else:
                 self._local = self._position
@@ -457,9 +476,8 @@ class GMachine(object):
             if not gcode.has("S"):
                 raise GMachineException("temperature is not specified")
             t = gcode.get('S', 0)
-            if ((heater == HEATER_EXTRUDER and t > EXTRUDER_MAX_TEMPERATURE) or
-                    (heater == HEATER_BED and t > BED_MAX_TEMPERATURE) or
-                    t < MIN_TEMPERATURE) and t != 0:
+            if (not (not (heater == HEATER_EXTRUDER and t > EXTRUDER_MAX_TEMPERATURE) and not (
+                    heater == HEATER_BED and t > BED_MAX_TEMPERATURE)) or t < MIN_TEMPERATURE) and t != 0:
                 raise GMachineException("bad temperature")
             self._heat(heater, t, wait)
         elif c == 'M105':  # get temperature
@@ -486,7 +504,7 @@ class GMachine(object):
         elif c == 'M114':  # get current position
             hal.join()
             p = self.position()
-            answer = "X:{} Y:{} Z:{} E:{} Q:{} N:{}".format(p.x, p.y, p.z, p.e, p.q, p.n)
+            answer = "X:{} Y:{} Z:{} E:{} Q:{} N:{} A:{} B:{}".format(p.x, p.y, p.z, p.e, p.q, p.n, p.a, p.b)
         elif c is None:  # command not specified(ie just F was passed)
             pass
         # commands below are added just for compatibility

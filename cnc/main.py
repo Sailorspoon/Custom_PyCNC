@@ -1,4 +1,4 @@
-# Aenderung Max 27.11.2019
+# Aenderung Max 28.11.2019
 #!/usr/bin/env python
 
 import os
@@ -57,16 +57,16 @@ def main():
             # Main loop for interactive shell
             # Use stdin/stdout, additional interfaces like
             # UART, Socket or any other can be added.
-            print("*************** Welcome to Custom PyCNC ***************\n"
-                  "                         /\\\n"
-                  "                        /  \\\n"
-                  "                       /    \\\n"
-                  "                      /      \\\n"
-                  "                     /        \\\n"
-                  "                    /          \\\n"
-                  "                   --------------\n"
-                  "                  KoFi Delta Project\n"
-                  "*******************************************************\n")
+            print("****************** Welcome to Custom PyCNC ********************\n"
+                  "                            /\\\n"
+                  "                           /  \\\n"
+                  "                          /    \\\n"
+                  "                         /      \\\n"
+                  "                        /        \\\n"
+                  "                       /          \\\n"
+                  "                      --------------\n"
+                  "                     pmd Delta Project\n"
+                  "***************************************************************\n")
 
             while True:
                 line = raw_input('> ')
