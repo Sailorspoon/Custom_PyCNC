@@ -99,9 +99,8 @@ class GMachine(object):
 
     def __check_delta(self, delta):
         pos = self._position + delta
-        if not pos.is_in_aabb(Coordinates(0.0, 0.0, 0.0, 0.0),
-                              Coordinates(TABLE_SIZE_X_MM, TABLE_SIZE_Y_MM,
-                                          TABLE_SIZE_Z_MM, 0)):
+        # Check if Coordinates are within circular Table
+        if pos.x ** 2 + pos.y ** 2 > TABLE_SIZE_RADIUS_MM ** 2:
             raise GMachineException("out of effective area")
 
     # noinspection PyMethodMayBeStatic

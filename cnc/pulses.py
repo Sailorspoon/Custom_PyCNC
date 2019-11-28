@@ -5,7 +5,6 @@ from cnc.config import *
 from cnc.coordinates import *
 from cnc.enums import *
 from cnc.gcode import *
-from cnc.gmachine import *
 
 SECONDS_IN_MINUTE = 60.0
 
@@ -263,34 +262,31 @@ class PulseGeneratorLinear(PulseGenerator):
         height_carriage_mm_old['b'] = height_carriage_mm['b']
         height_carriage_mm_old['c'] = height_carriage_mm['c']
 
-        # Berechnung der Zielposition des Tools durch Additition von aktueller Position (tu) und Verfahrweg (delta)
-        tu = {'x': 0, 'y': 0, 'z': 0}
+        # Berechnung der Zielposition des Tools durch Additition von aktueller Position und Verfahrweg (delta)
         tu['x'] += delta_mm.x
         tu['y'] += delta_mm.y
         tu['z'] += delta_mm.z
 
         # Berechnung der auf x,y Ebene projezierten Distanz zwischen Pivot und Carriage,
-        distance_pivot_carriage_mm['a'] = math.sqrt((radius_heatbed - (tu['x'] + distance_pivot_tool_mm)) ** 2
-                                                    + (0 - tu['y']) ** 2)
         # Berechnung der Carriage Hoehe
-        height_carriage_mm['a'] = tu['z'] + height_pivot_tool_mm + math.sqrt(length_arm['a'] ** 2
-                                                                             - distance_pivot_carriage_mm['a'] ** 2)
-        distance_pivot_carriage_mm['b'] = math.sqrt((radius_heatbed * math.cos(math.radians(120))
-                                                     - (tu['x'] + distance_pivot_tool_mm *
-                                                        math.cos(math.radians(120)))) ** 2
-                                                    + (radius_heatbed * math.sin(math.radians(120))
-                                                       - (tu['y'] + distance_pivot_tool_mm *
-                                                          math.sin(math.radians(120)))) ** 2)
-        height_carriage_mm['b'] = tu['z'] + height_pivot_tool_mm + math.sqrt(length_arm['b'] ** 2
-                                                                             - distance_pivot_carriage_mm['b'] ** 2)
-        distance_pivot_carriage_mm['c'] = math.sqrt((radius_heatbed * math.cos(math.radians(240))
+        height_carriage_mm['a'] = round(tu['z'] + height_pivot_tool_mm\
+                                  + math.sqrt(length_arm['a'] ** 2
+                                              - ((radius_heatbed - (tu['x'] + distance_pivot_tool_mm)) ** 2
+                                                 + (0 - tu['y']) ** 2)), 5)
+        height_carriage_mm['b'] = round(tu['z'] + height_pivot_tool_mm\
+                                  + math.sqrt(length_arm['b'] ** 2 - ((radius_heatbed * math.cos(math.radians(120))
+                                                  - (tu['x'] + distance_pivot_tool_mm *
+                                                     math.cos(math.radians(120)))) ** 2
+                                                                      + (radius_heatbed * math.sin(math.radians(120))
+                                                                         - (tu['y'] + distance_pivot_tool_mm
+                                                                            * math.sin(math.radians(120)))) ** 2)), 5)
+        height_carriage_mm['c'] = round(tu['z'] + height_pivot_tool_mm\
+                                  + math.sqrt(length_arm['c'] ** 2 - ((radius_heatbed * math.cos(math.radians(240))
                                                      - (tu['x'] + distance_pivot_tool_mm *
                                                         math.cos(math.radians(240)))) ** 2
                                                     + (radius_heatbed * math.sin(math.radians(240))
                                                        - (tu['y'] + distance_pivot_tool_mm *
-                                                          math.sin(math.radians(240)))) ** 2)
-        height_carriage_mm['c'] = tu['z'] + height_pivot_tool_mm + math.sqrt(length_arm['c'] ** 2
-                                                                             - distance_pivot_carriage_mm['c'] ** 2)
+                                                          math.sin(math.radians(240)))) ** 2)), 5)
         # zu fahrende Hoehe des Carriage
         distance_mm.x = height_carriage_mm['a'] - height_carriage_mm_old['a']
         distance_mm.y = height_carriage_mm['b'] - height_carriage_mm_old['b']
@@ -330,8 +326,8 @@ class PulseGeneratorLinear(PulseGenerator):
                                                             (tu['y'] - ((math.sqrt(3) * distance_pivot_tool_mm) / 2))
                                                             ** 2 + (distance_pivot_tool_mm / 2) - tu['x'])))
 
-        distance_total_mm = distance_mm.length()
-        self.max_velocity_mm_per_sec = self._adjust_velocity(distance_mm * (
+        distance_total_mm = abs(distance_mm.length())
+        self.max_velocity_mm_per_sec = self._adjust_velocity(abs(distance_mm) * (
             velocity_carriage_mm_per_min / SECONDS_IN_MINUTE / distance_total_mm))
         # acceleration time
         self.acceleration_time_s = (self.max_velocity_mm_per_sec.find_max()
@@ -355,13 +351,15 @@ class PulseGeneratorLinear(PulseGenerator):
                                  * STEPPER_MAX_ACCELERATION_MM_PER_S2
             self.linear_time_s = (linear_distance_mm
                                   / self.max_velocity_mm_per_sec.length())
-        self._total_pulses_x = round(distance_mm.x * STEPPER_PULSES_PER_MM_X)
-        self._total_pulses_y = round(distance_mm.y * STEPPER_PULSES_PER_MM_Y)
-        self._total_pulses_z = round(distance_mm.z * STEPPER_PULSES_PER_MM_Z)
-        self._total_pulses_e = round(distance_mm.e * STEPPER_PULSES_PER_MM_E)
-        self._direction = (math.copysign(1, delta_mm.x),
-                           math.copysign(1, delta_mm.y),
-                           math.copysign(1, delta_mm.z),
+        # Abs of total Pulses
+        # get direction from distance_mm
+        self._total_pulses_x = round(abs(distance_mm.x * STEPPER_PULSES_PER_MM_X))
+        self._total_pulses_y = round(abs(distance_mm.y * STEPPER_PULSES_PER_MM_Y))
+        self._total_pulses_z = round(abs(distance_mm.z * STEPPER_PULSES_PER_MM_Z))
+        self._total_pulses_e = round(abs(distance_mm.e * STEPPER_PULSES_PER_MM_E))
+        self._direction = (math.copysign(1, distance_mm.x),
+                           math.copysign(1, distance_mm.y),
+                           math.copysign(1, distance_mm.z),
                            math.copysign(1, delta_mm.e))
 
     def _get_movement_parameters(self):
