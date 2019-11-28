@@ -5,11 +5,11 @@ import math
 
 # neue Parameter fuer Delta-Logik
 distance_pivot_carriage_mm = {'a': 0, 'b': 0, 'c': 0}
-radius_heatbed = 200
-height_pivot_tool_mm = 50
+radius_heatbed = 263
+height_pivot_tool_mm = 22
 height_carriage_mm = {'a': 0, 'b': 0, 'c': 0}
-length_arm = {'a': 300, 'b': 300, 'c': 300}
-distance_pivot_tool_mm = 50
+length_arm = {'a': 400, 'b': 400, 'c': 400}
+distance_pivot_tool_mm = 40
 
 
 # Startwerte der carriage high (tx, ty, tz = 0)
@@ -17,9 +17,9 @@ distance_pivot_carriage_mm['a'] = math.sqrt((radius_heatbed - (0 + distance_pivo
 height_carriage_mm['a'] = 0 + height_pivot_tool_mm + math.sqrt(length_arm['a'] ** 2
                                                                - distance_pivot_carriage_mm['a'] ** 2)
 distance_pivot_carriage_mm['b'] = math.sqrt((radius_heatbed * math.cos(math.radians(120))
-                                    - (0 + distance_pivot_tool_mm * math.cos(math.radians(120)))) ** 2
-                                    + (radius_heatbed * math.sin(math.radians(120)) - (0 + distance_pivot_tool_mm
-                                    * math.sin(math.radians(120)))) ** 2)
+                                             - (0 + distance_pivot_tool_mm * math.cos(math.radians(120)))) ** 2
+                                            + (radius_heatbed * math.sin(math.radians(120)) -
+                                               (0 + distance_pivot_tool_mm * math.sin(math.radians(120)))) ** 2)
 height_carriage_mm['b'] = 0 + height_pivot_tool_mm + math.sqrt(length_arm['b'] ** 2
                                                                - distance_pivot_carriage_mm['b'] ** 2)
 distance_pivot_carriage_mm['c'] = math.sqrt((radius_heatbed * math.cos(math.radians(240))
@@ -34,8 +34,8 @@ height_carriage_mm_old = dict()
 
 # Maximum velocity for each axis in millimeter per minute.
 MAX_VELOCITY_MM_PER_MIN_X = 24000
-MAX_VELOCITY_MM_PER_MIN_Y = 12000
-MAX_VELOCITY_MM_PER_MIN_Z = 600
+MAX_VELOCITY_MM_PER_MIN_Y = 24000
+MAX_VELOCITY_MM_PER_MIN_Z = 24000
 MAX_VELOCITY_MM_PER_MIN_E = 1500
 MIN_VELOCITY_MM_PER_MIN = 1
 # Average velocity for endstop calibration procedure
@@ -44,12 +44,12 @@ CALIBRATION_VELOCITY_MM_PER_MIN = 300
 # Stepper motors steps per millimeter for each axis.
 STEPPER_PULSES_PER_MM_X = 100
 STEPPER_PULSES_PER_MM_Y = 100
-STEPPER_PULSES_PER_MM_Z = 400
+STEPPER_PULSES_PER_MM_Z = 100
 STEPPER_PULSES_PER_MM_E = 150
 
 # Invert axises direction, by default(False) high level means increase of
 # position. For inverted(True) axis, high level means decrease of position.
-STEPPER_INVERTED_X = True
+STEPPER_INVERTED_X = False
 STEPPER_INVERTED_Y = False
 STEPPER_INVERTED_Z = False
 STEPPER_INVERTED_E = True
@@ -62,9 +62,9 @@ ENDSTOP_INVERTED_Y = True
 ENDSTOP_INVERTED_Z = False  # Auto leveler
 
 # Workplace physical size.
-TABLE_SIZE_X_MM = 200
-TABLE_SIZE_Y_MM = 200
-TABLE_SIZE_Z_MM = 220
+TABLE_SIZE_X_MM = 100
+TABLE_SIZE_Y_MM = 100
+TABLE_SIZE_Z_MM = 455
 
 # Mixed settings.
 STEPPER_PULSE_LENGTH_US = 2
