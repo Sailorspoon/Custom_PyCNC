@@ -1,4 +1,4 @@
-# 27.11.2019 Christian Q und N Achsen eingefuegt
+# 28.11.2019 Christian A und B Achsen eingefuegt
 import unittest
 
 from cnc.gcode import *
@@ -24,21 +24,21 @@ class TestGMachine(unittest.TestCase):
         m.do_command(GCode.parse_line("G91"))
         m.do_command(GCode.parse_line("X1Y1Z1"))
         m.reset()
-        m.do_command(GCode.parse_line("X3Y4Z5E6Q7N8"))
-        self.assertEqual(m.position(), Coordinates(3, 4, 5, 6, 7, 8))
+        m.do_command(GCode.parse_line("X3Y4Z5E6Q7N8A9B10"))
+        self.assertEqual(m.position(), Coordinates(3, 4, 5, 6, 7, 8, 9, 10))
 
     def test_safe_zero(self):
         m = GMachine()
-        m.do_command(GCode.parse_line("X1Y2Z3E4Q4N5"))
+        m.do_command(GCode.parse_line("X1Y2Z3E4Q4N5A6B7"))
         m.safe_zero()    # In safe_zero (in gmachine.py) die anderen safe daten eingeben
-        self.assertEqual(m.position(), Coordinates(0, 0, 0, 4, 4, 0))
+        self.assertEqual(m.position(), Coordinates(0, 0, 0, 4, 4, 0, 0, 0))
 
     def test_none(self):
         # GMachine must ignore None commands, since GCode.parse_line()
         # returns None if no gcode found in line.
         m = GMachine()
         m.do_command(None)
-        self.assertEqual(m.position(), Coordinates(0, 0, 0, 0, 0, 0))
+        self.assertEqual(m.position(), Coordinates(0, 0, 0, 0, 0, 0, 0, 0))
 
     def test_unknown(self):
         # Test commands which doesn't exists
@@ -52,11 +52,11 @@ class TestGMachine(unittest.TestCase):
     def test_g0_g1(self):
         m = GMachine()
         m.do_command(GCode.parse_line("G0X10Y10Z11"))
-        self.assertEqual(m.position(), Coordinates(10, 10, 11, 0, 0, 0))
-        m.do_command(GCode.parse_line("G0X3Y2Z1E-2Q-2N0"))
-        self.assertEqual(m.position(), Coordinates(3, 2, 1, -2, -2, 0))
-        m.do_command(GCode.parse_line("G1X1Y2Z3E4Q4N1"))
-        self.assertEqual(m.position(), Coordinates(1, 2, 3, 4, 4, 1))
+        self.assertEqual(m.position(), Coordinates(10, 10, 11, 0, 0, 0, 0, 0))
+        m.do_command(GCode.parse_line("G0X3Y2Z1E-2Q-2N0A3B3"))
+        self.assertEqual(m.position(), Coordinates(3, 2, 1, -2, -2, 0, 3, 3))
+        m.do_command(GCode.parse_line("G1X1Y2Z3E4Q4N1A2B5"))
+        self.assertEqual(m.position(), Coordinates(1, 2, 3, 4, 4, 1, 2, 5))
         self.assertRaises(GMachineException,
                           m.do_command, GCode.parse_line("G1F-1"))
         self.assertRaises(GMachineException,
@@ -86,6 +86,10 @@ class TestGMachine(unittest.TestCase):
                                       + str(MAX_VELOCITY_MM_PER_MIN_Q)))
         m.do_command(GCode.parse_line("G1N100F"
                                       + str(MAX_VELOCITY_MM_PER_MIN_N)))
+        m.do_command(GCode.parse_line("G1A100F"
+                                      + str(MAX_VELOCITY_MM_PER_MIN_A))
+        m.do_command(GCode.parse_line("G1B100F"
+                                      + str(MAX_VELOCITY_MM_PER_MIN_B)))
         self.assertRaises(GMachineException,
                           m.do_command, GCode.parse_line("G1X0F999999"))
         s = "G1X0F" + str(MAX_VELOCITY_MM_PER_MIN_X + 1)
@@ -134,30 +138,30 @@ class TestGMachine(unittest.TestCase):
         m.do_command(GCode.parse_line("G1X1"))
         m.do_command(GCode.parse_line("G2J1"))
         m.do_command(GCode.parse_line("G3J1"))
-        self.assertEqual(m.position(), Coordinates(1, 0, 0, 0, 0, 0))
-        m.do_command(GCode.parse_line("G1X10Y10"))
-        m.do_command(GCode.parse_line("G2X9I1Q2"))
-        self.assertEqual(m.position(), Coordinates(9, 10, 0, 0, 2, 0))
+        self.assertEqual(m.position(), Coordinates(1, 0, 0, 0, 0, 0, 0, 0))
+        m.do_command(GCode.parse_line("G1X10Y10B2"))
+        m.do_command(GCode.parse_line("G2X9I1Q2A3"))
+        self.assertEqual(m.position(), Coordinates(9, 10, 0, 0, 2, 0, 3, 2))
         m.do_command(GCode.parse_line("G19"))
         m.do_command(GCode.parse_line("G1X10Y10Z10N5"))
-        m.do_command(GCode.parse_line("G3Y8K1Q1"))
-        self.assertEqual(m.position(), Coordinates(10, 8, 10, 0, 1, 5))
+        m.do_command(GCode.parse_line("G3Y8K1Q1A3B2"))
+        self.assertEqual(m.position(), Coordinates(10, 8, 10, 0, 1, 3, 2))
         m.do_command(GCode.parse_line("G17"))
-        m.do_command(GCode.parse_line("G1X5Y5Z0Q2"))
-        m.do_command(GCode.parse_line("G2X0Y0Z5I-2J-2Q5"))
-        self.assertEqual(m.position(), Coordinates(0, 0, 5, 0, 5, 5))
+        m.do_command(GCode.parse_line("G1X5Y5Z0Q2A5"))
+        m.do_command(GCode.parse_line("G2X0Y0Z5I-2J-2Q5A2B2"))
+        self.assertEqual(m.position(), Coordinates(0, 0, 5, 0, 5, 5, 2, 2))
         m.do_command(GCode.parse_line("G17"))
-        m.do_command(GCode.parse_line("G1X90Y90N1"))
+        m.do_command(GCode.parse_line("G1X90Y90N1A3"))
         m.do_command(GCode.parse_line("G2X90Y70I-5J-5"))
-        self.assertEqual(m.position(), Coordinates(90, 70, 5, 0, 5, 1))
+        self.assertEqual(m.position(), Coordinates(90, 70, 5, 0, 5, 1, 3, 0))
         m.do_command(GCode.parse_line("G18"))
-        m.do_command(GCode.parse_line("G1X90Y90Z20E0"))
+        m.do_command(GCode.parse_line("G1X90Y90Z20E0A0B0"))
         m.do_command(GCode.parse_line("G2Z20X70I-5K-5E22Q0N0"))
-        self.assertEqual(m.position(), Coordinates(70, 90, 20, 22, 0, 0))
+        self.assertEqual(m.position(), Coordinates(70, 90, 20, 22, 0, 0, 0, 0))
         m.do_command(GCode.parse_line("G19"))
-        m.do_command(GCode.parse_line("G1X90Y90Z20Q1N1"))
-        m.do_command(GCode.parse_line("G2Y90Z0J-5K-5E27Q2N3"))
-        self.assertEqual(m.position(), Coordinates(90, 90, 0, 27, 2, 3))
+        m.do_command(GCode.parse_line("G1X90Y90Z20Q1N1A1B1"))
+        m.do_command(GCode.parse_line("G2Y90Z0J-5K-5E27Q2N3A2B2"))
+        self.assertEqual(m.position(), Coordinates(90, 90, 0, 27, 2, 3, 2, 2))
 
     def test_g4(self):
         m = GMachine()
@@ -181,56 +185,56 @@ class TestGMachine(unittest.TestCase):
         # Wechsel zwischen inches und millimeter
         m = GMachine()
         m.do_command(GCode.parse_line("G20"))    # Ab hier ist der G-Code in inches
-        m.do_command(GCode.parse_line("X3Y2Z1E0.5Q2N1"))
-        self.assertEqual(m.position(), Coordinates(76.2, 50.8, 25.4, 12.7, 50.8, 25.4))    # Rechnet den angegebenen G-Code von inches zu millimeter
+        m.do_command(GCode.parse_line("X3Y2Z1E0.5Q2N1A5B7"))
+        self.assertEqual(m.position(), Coordinates(76.2, 50.8, 25.4, 12.7, 50.8, 25.4, 127, 177.8))    # Rechnet den angegebenen G-Code von inches zu millimeter
         m.do_command(GCode.parse_line("G21"))   # Ab hier ist der G-Code in millimeter
-        m.do_command(GCode.parse_line("X3Y2Z1E0.5Q2Nh1"))
-        self.assertEqual(m.position(), Coordinates(3, 2, 1, 0.5, 2, 1))
+        m.do_command(GCode.parse_line("X3Y2Z1E0.5Q2N1A2B3"))
+        self.assertEqual(m.position(), Coordinates(3, 2, 1, 0.5, 2, 1, 2, 3))
 
     def test_g90_g91(self):
         m = GMachine()
-        m.do_command(GCode.parse_line("G91"))
-        m.do_command(GCode.parse_line("X1Y1Z1E1Q1N1"))
-        m.do_command(GCode.parse_line("X1Y1Z1Q1N1"))
-        m.do_command(GCode.parse_line("X1Y1N-1"))
+        m.do_command(GCode.parse_line("G91"))    # relative coords
+        m.do_command(GCode.parse_line("X1Y1Z1E1Q1N1A1B1"))
+        m.do_command(GCode.parse_line("X1Y1Z1Q1N1A1B1"))
+        m.do_command(GCode.parse_line("X1Y1N-1B1"))
         m.do_command(GCode.parse_line("X1"))
-        self.assertEqual(m.position(), Coordinates(4, 3, 2, 1, 2, 1))
-        m.do_command(GCode.parse_line("X-1Y-1Z-1E-1Q-1N-1"))
-        m.do_command(GCode.parse_line("G90"))
-        m.do_command(GCode.parse_line("X1Y1Z1E1Q1N1"))
-        self.assertEqual(m.position(), Coordinates(1, 1, 1, 1, 1, 1))
+        self.assertEqual(m.position(), Coordinates(4, 3, 2, 1, 2, 1, 2, 3))
+        m.do_command(GCode.parse_line("X-1Y-1Z-1E-1Q-1N-1A-1B-1"))
+        m.do_command(GCode.parse_line("G90"))   # absolute coords
+        m.do_command(GCode.parse_line("X1Y1Z1E1Q1N1A1B1"))
+        self.assertEqual(m.position(), Coordinates(1, 1, 1, 1, 1, 1, 1, 1))
 
     def test_g53_g92(self):
         m = GMachine()
-        m.do_command(GCode.parse_line("G92X100Y100Z100E100Q100N100"))
-        m.do_command(GCode.parse_line("X101Y102Z103E104Q105N106"))
-        self.assertEqual(m.position(), Coordinates(1, 2, 3, 4, 5, 6))
-        m.do_command(GCode.parse_line("G92X-1Y-1Z-1E-1Q-1N-1"))
-        m.do_command(GCode.parse_line("X1Y1Z1E1Q1N1"))
-        self.assertEqual(m.position(), Coordinates(3, 4, 5, 6, 7, 8))
-        m.do_command(GCode.parse_line("G92X3Y4Z5E6Q7N8"))
-        m.do_command(GCode.parse_line("X0Y0Z0E0Q0N0"))
-        self.assertEqual(m.position(), Coordinates(0, 0, 0, 0, 0, 0))
-        m.do_command(GCode.parse_line("X1Y2Z3E4Q5N6"))
-        self.assertEqual(m.position(), Coordinates(1, 2, 3, 4, 5, 6))
+        m.do_command(GCode.parse_line("G92X100Y100Z100E100Q100N100A100B100"))
+        m.do_command(GCode.parse_line("X101Y102Z103E104Q105N106A107B108"))
+        self.assertEqual(m.position(), Coordinates(1, 2, 3, 4, 5, 6, 7, 8))
+        m.do_command(GCode.parse_line("G92X-1Y-1Z-1E-1Q-1N-1A-1B-1"))
+        m.do_command(GCode.parse_line("X1Y1Z1E1Q1N1A1B1"))
+        self.assertEqual(m.position(), Coordinates(3, 4, 5, 6, 7, 8, 9, 10))
+        m.do_command(GCode.parse_line("G92X3Y4Z5E6Q7N8A9B10"))
+        m.do_command(GCode.parse_line("X0Y0Z0E0Q0N0A0B0"))
+        self.assertEqual(m.position(), Coordinates(0, 0, 0, 0, 0, 0, 0, 0))
+        m.do_command(GCode.parse_line("X1Y2Z3E4Q5N6A7B8"))
+        self.assertEqual(m.position(), Coordinates(1, 2, 3, 4, 5, 6, 7, 8))
         m.do_command(GCode.parse_line("G53"))
-        m.do_command(GCode.parse_line("X6Y7Z8E9Q10N11"))
-        self.assertEqual(m.position(), Coordinates(6, 7, 8, 9, 10, 11))
+        m.do_command(GCode.parse_line("X6Y7Z8E9Q10N11A12B13"))
+        self.assertEqual(m.position(), Coordinates(6, 7, 8, 9, 10, 11, 12, 13))
         m.do_command(GCode.parse_line("G92E0"))
-        m.do_command(GCode.parse_line("X6Y7Z8E1Q10N11"))
-        self.assertEqual(m.position(), Coordinates(6, 7, 8, 10, 10, 11))
+        m.do_command(GCode.parse_line("X6Y7Z8E1Q10N11A12B13"))
+        self.assertEqual(m.position(), Coordinates(6, 7, 8, 10, 10, 11, 12, 13))
         m.do_command(GCode.parse_line("G92"))
-        m.do_command(GCode.parse_line("X1Y1Z1E1Q1N1"))
-        self.assertEqual(m.position(), Coordinates(7, 8, 9, 11, 11, 10))    #Unsicher bei dieser Zeile aber why not koennte ja amazing werden
+        m.do_command(GCode.parse_line("X1Y1Z1E1Q1N1A1B1"))
+        self.assertEqual(m.position(), Coordinates(7, 8, 9, 11, 11, 12, 13, 14))    #Unsicher bei dieser Zeile aber why not koennte ja amazing werden
 
     def test_g53_g91_g92(self):
         m = GMachine()
-        m.do_command(GCode.parse_line("G92X-50Y-60Z-70E-80Q-90N-100"))    # Wechel zu local coords
-        m.do_command(GCode.parse_line("X-45Y-55Z-65E-75Q-85N-95"))
-        self.assertEqual(m.position(), Coordinates(5, 5, 5, 5, 5, 5))
+        m.do_command(GCode.parse_line("G92X-50Y-60Z-70E-80Q-90N-100A-110B-120"))    # Wechsel zu local coords
+        m.do_command(GCode.parse_line("X-45Y-55Z-65E-75Q-85N-95A-105B-115"))
+        self.assertEqual(m.position(), Coordinates(5, 5, 5, 5, 5, 5, 5, 5))
         m.do_command(GCode.parse_line("G91"))    # Wechsel zu relativ coords
-        m.do_command(GCode.parse_line("X-1Y-2Z-3E-4Q-3N-2"))
-        self.assertEqual(m.position(), Coordinates(4, 3, 2, 1, 2, 3))
+        m.do_command(GCode.parse_line("X-1Y-2Z-3E-4Q-3N-2A-2B-1"))
+        self.assertEqual(m.position(), Coordinates(4, 3, 2, 1, 2, 3, 3, 2))
 
     def test_m3_m5(self):
         # Ist fuer spindel gedacht, never touch a running system

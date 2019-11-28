@@ -1,3 +1,4 @@
+# 28.11.2019 Christian KEINE aenderungen fuer tests notwendig gewesen
 #!/usr/bin/env python
 
 from .rpgpio_private import *
