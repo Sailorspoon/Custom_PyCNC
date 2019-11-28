@@ -106,7 +106,7 @@ class TestGCode(unittest.TestCase):
 
     def test_multiply(self):
         # getting coordinates could modify value be specified multiplier.
-        gc = GCode.parse_line("X2 Y-3 Z4 E5 Q3 Q2")
+        gc = GCode.parse_line("X2 Y-3 Z4 E5 Q3 N2")
         self.assertEqual(gc.coordinates(self.default, 25.4).x, 50.8)
         self.assertEqual(gc.coordinates(self.default, 2).y, -6)
         self.assertEqual(gc.coordinates(self.default, 0).z, 0)

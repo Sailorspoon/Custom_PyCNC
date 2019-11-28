@@ -105,7 +105,7 @@ class GMachine(object):
         pos = self._position + delta
         if not pos.is_in_aabb(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
                               Coordinates(TABLE_SIZE_X_MM, TABLE_SIZE_Y_MM,    # hier nur 3D Achsen relevant
-                                          TABLE_SIZE_Z_MM, 0, 0, 0)):
+                                          TABLE_SIZE_Z_MM, 0, 0, TABLE_SIZE_N_MM)):
             raise GMachineException("out of effective area")
 
     # noinspection PyMethodMayBeStatic

@@ -58,14 +58,14 @@ def main():
             # Use stdin/stdout, additional interfaces like
             # UART, Socket or any other can be added.
             print("*************** Welcome to Custom PyCNC ***************\n"
-                  "                         /|\n"
-                  "                        / |\n"
-                  "                       /  |\n"
-                  "                      /   |\n"
-                  "                     /    |\n"
-                  "                    /     |\n"
-                  "                   --------\n"
-                  "               KoFi Delta Project\n"
+                  "                         /\\\n"
+                  "                        /  \\\n"
+                  "                       /    \\\n"
+                  "                      /      \\\n"
+                  "                     /        \\\n"
+                  "                    /          \\\n"
+                  "                   --------------\n"
+                  "                  KoFi Delta Project\n"
                   "*******************************************************\n")
 
             while True:

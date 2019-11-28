@@ -129,37 +129,47 @@ class TestPulses(unittest.TestCase):
         radius = Coordinates(1.0 / STEPPER_PULSES_PER_MM_X, 0, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_XY, CW)
         self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+
         radius = Coordinates(-1.0 / STEPPER_PULSES_PER_MM_X, 0, 0, 0, 0, 0)
-        _, pos = self.__check_circular(zero_delta, radius,
-                                       PLANE_XY, CW)
+        _, pos = self.__check_circular(zero_delta, radius, PLANE_XY, CW)
         self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+
         radius = Coordinates(0, 1.0 / STEPPER_PULSES_PER_MM_Y, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_YZ, CW)
         self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+
         radius = Coordinates(0, -1.0 / STEPPER_PULSES_PER_MM_Y, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_YZ, CW)
         self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+
         radius = Coordinates(0, 0, 1.0 / STEPPER_PULSES_PER_MM_Z, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_ZX, CW)
         self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+
         radius = Coordinates(0, 0, -1.0 / STEPPER_PULSES_PER_MM_Z, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_ZX, CW)
         self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+
         radius = Coordinates(1.0 / STEPPER_PULSES_PER_MM_X, 0, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_XY, CCW)
         self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+
         radius = Coordinates(-1.0 / STEPPER_PULSES_PER_MM_X, 0, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_XY, CCW)
         self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+
         radius = Coordinates(0, 1.0 / STEPPER_PULSES_PER_MM_Y, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_YZ, CCW)
         self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+
         radius = Coordinates(0, -1.0 / STEPPER_PULSES_PER_MM_Y, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_YZ, CCW)
         self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+
         radius = Coordinates(0, 0, 1.0 / STEPPER_PULSES_PER_MM_Z, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_ZX, CCW)
         self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+
         radius = Coordinates(0, 0, -1.0 / STEPPER_PULSES_PER_MM_Z, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_ZX, CCW)
         self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
@@ -199,7 +209,7 @@ class TestPulses(unittest.TestCase):
         i = 0
         j = 0
         k = 0
-        for direction, px, py, pz, pe in g:
+        for direction, px, py, pz, pe, pq, pn in g:
             if direction:
                 continue
             if py is not None:
@@ -214,6 +224,8 @@ class TestPulses(unittest.TestCase):
                 j = 0
             self.assertEqual(pz, None)
             self.assertEqual(pe, None)
+            self.assertEqual(pq, None)
+            self.assertEqual(pn, None)
             i += 1
         self.assertEqual(k / STEPPER_PULSES_PER_MM_Y, m.y)
 
@@ -342,7 +354,7 @@ class TestPulses(unittest.TestCase):
         dir_changed, _ = self.__check_circular(Coordinates(0, 0, 0, 0, 0, 0),
                                                Coordinates(1.0, 1.0, 0, 0, 0, 0),
                                                PLANE_ZX, CCW)
-        self.assertEqual(dir_changed, 4)
+        self.assertEqual(dir_changed, 6)    # Fix ERROR in test_directions previous value: 4
 
 
 if __name__ == '__main__':

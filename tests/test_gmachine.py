@@ -50,7 +50,6 @@ class TestGMachine(unittest.TestCase):
 
     # Test gcode commands.
     def test_g0_g1(self):
-        # In diesem Reiter die notwendigen Werte für Q und N ändern (unbekannt zu diesem Zeitpunkt 27.11.2019) moeglicherweise weitere Test hinzufügen
         m = GMachine()
         m.do_command(GCode.parse_line("G0X10Y10Z11"))
         self.assertEqual(m.position(), Coordinates(10, 10, 11, 0, 0, 0))
@@ -104,7 +103,7 @@ class TestGMachine(unittest.TestCase):
         PulseGenerator.AUTO_VELOCITY_ADJUSTMENT = True
         m.do_command(GCode.parse_line("G1X10Y10Z10F9999999999999999999"))
         m.do_command(GCode.parse_line("G2I0.1F9999999999999999999"))
-        m.do_command(GCode.parse_line("G2I10F9999999999999999999"))   # Später checken ob es hier einen Error gibt, ggf ergänzen
+        m.do_command(GCode.parse_line("G2I10F9999999999999999999"))   # Spaeter checken ob es hier einen Error gibt, ggf ergaenzen
         PulseGenerator.AUTO_VELOCITY_ADJUSTMENT = AUTO_VELOCITY_ADJUSTMENT
 
     def test_g2_g3(self):
@@ -185,7 +184,7 @@ class TestGMachine(unittest.TestCase):
         m.do_command(GCode.parse_line("X3Y2Z1E0.5Q2N1"))
         self.assertEqual(m.position(), Coordinates(76.2, 50.8, 25.4, 12.7, 50.8, 25.4))    # Rechnet den angegebenen G-Code von inches zu millimeter
         m.do_command(GCode.parse_line("G21"))   # Ab hier ist der G-Code in millimeter
-        m.do_command(GCode.parse_line("X3Y2Z1E0.5Q2N1"))
+        m.do_command(GCode.parse_line("X3Y2Z1E0.5Q2Nh1"))
         self.assertEqual(m.position(), Coordinates(3, 2, 1, 0.5, 2, 1))
 
     def test_g90_g91(self):

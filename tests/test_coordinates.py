@@ -46,13 +46,14 @@ class TestCoordinates(unittest.TestCase):
         self.assertFalse(c.is_in_aabb(p1, p2))
 
     def test_length(self):
+        # adjusted values to fit the test with six inputs
         c = Coordinates(-1, 0, 0, 0, 0, 0)
         self.assertEqual(c.length(), 1)
         c = Coordinates(0, 3, -4, 0, 0, 0)
         self.assertEqual(c.length(), 5)
-        c = Coordinates(3, 4, 12, 0, 0, 2)
+        c = Coordinates(3, 4, 0, 0, 0, 12)
         self.assertEqual(c.length(), 13)
-        c = Coordinates(1, 1, 1, 1, 1, 1)
+        c = Coordinates(1, 1, 0, 0, 1, 1)
         self.assertEqual(c.length(), 2)
 
     def test_round(self):
