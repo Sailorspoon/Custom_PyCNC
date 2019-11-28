@@ -1,4 +1,4 @@
-# Aenderung Max 27.11.2019
+# Aenderung Christian 28.11.2019 einfuegen der druckbettachsen
 import unittest
 
 from cnc.pulses import *
@@ -14,7 +14,9 @@ class TestPulses(unittest.TestCase):
                      MAX_VELOCITY_MM_PER_MIN_Z,
                      MAX_VELOCITY_MM_PER_MIN_E,
                      MAX_VELOCITY_MM_PER_MIN_Q,
-                     MAX_VELOCITY_MM_PER_MIN_N)
+                     MAX_VELOCITY_MM_PER_MIN_N,
+                     MAX_VELOCITY_MM_PER_MIN_A,
+                     MAX_VELOCITY_MM_PER_MIN_B)
 
     def tearDown(self):
         pass
@@ -23,21 +25,21 @@ class TestPulses(unittest.TestCase):
         # PulseGenerator should never receive empty movement.
         self.assertRaises(ZeroDivisionError,
                           PulseGeneratorLinear,
-                          Coordinates(0, 0, 0, 0, 0, 0), self.v)
+                          Coordinates(0, 0, 0, 0, 0, 0, 0, 0), self.v)
         self.assertRaises(ZeroDivisionError, PulseGeneratorCircular,
-                          Coordinates(0, 0, 0, 0, 0, 0), Coordinates(0, 0, 9, 9, 0, 0),
+                          Coordinates(0, 0, 0, 0, 0, 0, 0, 0), Coordinates(0, 0, 9, 9, 0, 0, 0, 0),
                           PLANE_XY, CW, self.v)
         self.assertRaises(ZeroDivisionError, PulseGeneratorCircular,
-                          Coordinates(0, 0, 0, 0, 0, 0), Coordinates(9, 0, 0, 9, 0, 0),
+                          Coordinates(0, 0, 0, 0, 0, 0, 0, 0), Coordinates(9, 0, 0, 9, 0, 0, 0, 0),
                           PLANE_YZ, CW, self.v)
         self.assertRaises(ZeroDivisionError, PulseGeneratorCircular,
-                          Coordinates(0, 0, 0, 0, 0, 0), Coordinates(0, 9, 0, 9, 0, 0),
+                          Coordinates(0, 0, 0, 0, 0, 0, 0, 0), Coordinates(0, 9, 0, 9, 0, 0, 0, 0),
                           PLANE_ZX, CW, self.v)
 
     def test_step_linear(self):
         # Check if PulseGenerator returns correctly single step movement.
         g = PulseGeneratorLinear(Coordinates(1.0 / STEPPER_PULSES_PER_MM_X,
-                                             0, 0, 0, 0, 0),
+                                             0, 0, 0, 0, 0, 0, 0),
                                  self.v)
         i = 0
         for direction, px, py, pz, pe, pq, pn in g:
@@ -50,6 +52,8 @@ class TestPulses(unittest.TestCase):
             self.assertEqual(pe, None)
             self.assertEqual(pq, None)
             self.assertEqual(pn, None)
+            self.assertEqual(pa, None)
+            self.assertEqual(pb, None)
         self.assertEqual(i, 1)
         g = PulseGeneratorLinear(Coordinates(
                                              1.0 / STEPPER_PULSES_PER_MM_X,
@@ -57,10 +61,12 @@ class TestPulses(unittest.TestCase):
                                              1.0 / STEPPER_PULSES_PER_MM_Z,
                                              1.0 / STEPPER_PULSES_PER_MM_E,
                                              1.0 / STEPPER_PULSES_PER_MM_Q,
-                                             1.0 / STEPPER_PULSES_PER_MM_N),
+                                             1.0 / STEPPER_PULSES_PER_MM_N,
+                                             1.0 / STEPPER_PULSES_PER_MM_A,
+                                             1.0 / STEPPER_PULSES_PER_MM_B),
                                  self.v)
         i = 0
-        for direction, px, py, pz, pe, pq, pn in g:
+        for direction, px, py, pz, pe, pq, pn, pa, pb in g:
             if direction:
                 continue
             i += 1
@@ -70,18 +76,20 @@ class TestPulses(unittest.TestCase):
             self.assertEqual(pe, 0)
             self.assertEqual(pq, 0)
             self.assertEqual(pn, 0)
+            self.assertEqual(pa, 0)
+            self.assertEqual(pb, 0)
         self.assertEqual(i, 1)
 
     def __check_circular(self, delta, radius, plane, direction=CW):
         g = PulseGeneratorCircular(delta, radius, plane, direction, self.v)
-        x, y, z, e, q, n = 0, 0, 0, 0, 0, 0
-        dx, dy, dz, de, dq, dn = None, None, None, None, None, None
+        x, y, z, e, q, n, a, b = 0, 0, 0, 0, 0, 0, 0, 0
+        dx, dy, dz, de, dq, dn, da, db = None, None, None, None, None, None, None, None
         dir_changed = 0
         dir_requested = False
         t = -1
-        for direction_i, px, py, pz, pe, pq, pn in g:
+        for direction_i, px, py, pz, pe, pq, pn, pa, pb in g:
             if direction_i:
-                dx, dy, dz, de, dq, dn = px, py, pz, pe, pq, pn
+                dx, dy, dz, de, dq, dn, da, db = px, py, pz, pe, pq, pn, pa, pb
                 if STEPPER_INVERTED_X:
                     dx = -dx
                 if STEPPER_INVERTED_Y:
@@ -94,6 +102,10 @@ class TestPulses(unittest.TestCase):
                     dq = -dq
                 if STEPPER_INVERTED_N:
                     dn = -dn
+                if STEPPER_INVERTED_A:
+                    da = -da
+                if STEPPER_INVERTED_B:
+                    db = -db
                 dir_requested = True
                 continue
             if dir_requested:  # ignore last change
@@ -111,7 +123,11 @@ class TestPulses(unittest.TestCase):
                 q += dq
             if pn is not None:
                 n += dn
-            v = list(i for i in (px, py, pz, pe, pq, pn) if i is not None)
+            if pa is not None:
+                a += da
+            if pb is not None:
+                b += db
+            v = list(i for i in (px, py, pz, pe, pq, pn, pa, pb) if i is not None)
             self.assertEqual(min(v), max(v))
             self.assertLessEqual(t, min(v))
             t = max(v)
@@ -120,96 +136,98 @@ class TestPulses(unittest.TestCase):
                                         z / STEPPER_PULSES_PER_MM_Z,
                                         e / STEPPER_PULSES_PER_MM_E,
                                         q / STEPPER_PULSES_PER_MM_Q,
-                                        n / STEPPER_PULSES_PER_MM_N)
+                                        n / STEPPER_PULSES_PER_MM_N,
+                                        a / STEPPER_PULSES_PER_MM_A,
+                                        b / STEPPER_PULSES_PER_MM_B)
 
     def test_single_radius_circles(self):
         # Check if PulseGenerator returns correctly single radius movement in
         # both direction.
-        zero_delta = Coordinates(0, 0, 0, 0, 0, 0)
-        radius = Coordinates(1.0 / STEPPER_PULSES_PER_MM_X, 0, 0, 0, 0, 0)
+        zero_delta = Coordinates(0, 0, 0, 0, 0, 0, 0, 0)
+        radius = Coordinates(1.0 / STEPPER_PULSES_PER_MM_X, 0, 0, 0, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_XY, CW)
-        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0, 0, 0))
 
-        radius = Coordinates(-1.0 / STEPPER_PULSES_PER_MM_X, 0, 0, 0, 0, 0)
+        radius = Coordinates(-1.0 / STEPPER_PULSES_PER_MM_X, 0, 0, 0, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_XY, CW)
-        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0, 0, 0))
 
-        radius = Coordinates(0, 1.0 / STEPPER_PULSES_PER_MM_Y, 0, 0, 0, 0)
+        radius = Coordinates(0, 1.0 / STEPPER_PULSES_PER_MM_Y, 0, 0, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_YZ, CW)
-        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0, 0, 0))
 
-        radius = Coordinates(0, -1.0 / STEPPER_PULSES_PER_MM_Y, 0, 0, 0, 0)
+        radius = Coordinates(0, -1.0 / STEPPER_PULSES_PER_MM_Y, 0, 0, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_YZ, CW)
-        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0, 0, 0))
 
-        radius = Coordinates(0, 0, 1.0 / STEPPER_PULSES_PER_MM_Z, 0, 0, 0)
+        radius = Coordinates(0, 0, 1.0 / STEPPER_PULSES_PER_MM_Z, 0, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_ZX, CW)
-        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0, 0, 0))
 
-        radius = Coordinates(0, 0, -1.0 / STEPPER_PULSES_PER_MM_Z, 0, 0, 0)
+        radius = Coordinates(0, 0, -1.0 / STEPPER_PULSES_PER_MM_Z, 0, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_ZX, CW)
-        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0, 0, 0))
 
-        radius = Coordinates(1.0 / STEPPER_PULSES_PER_MM_X, 0, 0, 0, 0, 0)
+        radius = Coordinates(1.0 / STEPPER_PULSES_PER_MM_X, 0, 0, 0, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_XY, CCW)
-        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0, 0, 0))
 
-        radius = Coordinates(-1.0 / STEPPER_PULSES_PER_MM_X, 0, 0, 0, 0, 0)
+        radius = Coordinates(-1.0 / STEPPER_PULSES_PER_MM_X, 0, 0, 0, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_XY, CCW)
-        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0, 0, 0))
 
-        radius = Coordinates(0, 1.0 / STEPPER_PULSES_PER_MM_Y, 0, 0, 0, 0)
+        radius = Coordinates(0, 1.0 / STEPPER_PULSES_PER_MM_Y, 0, 0, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_YZ, CCW)
-        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0, 0, 0))
 
-        radius = Coordinates(0, -1.0 / STEPPER_PULSES_PER_MM_Y, 0, 0, 0, 0)
+        radius = Coordinates(0, -1.0 / STEPPER_PULSES_PER_MM_Y, 0, 0, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_YZ, CCW)
-        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0, 0, 0))
 
-        radius = Coordinates(0, 0, 1.0 / STEPPER_PULSES_PER_MM_Z, 0, 0, 0)
+        radius = Coordinates(0, 0, 1.0 / STEPPER_PULSES_PER_MM_Z, 0, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_ZX, CCW)
-        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0, 0, 0))
 
-        radius = Coordinates(0, 0, -1.0 / STEPPER_PULSES_PER_MM_Z, 0, 0, 0)
+        radius = Coordinates(0, 0, -1.0 / STEPPER_PULSES_PER_MM_Z, 0, 0, 0, 0, 0)
         _, pos = self.__check_circular(zero_delta, radius, PLANE_ZX, CCW)
-        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0))
+        self.assertEqual(pos, Coordinates(0, 0, 0, 0, 0, 0, 0, 0))
 
     def test_with_hal_virtual(self):
         # Using hal_virtual module for this test, it already contains plenty
         # of asserts for wrong number of pulses, pulse timing issues etc
-        hal_virtual.move(PulseGeneratorLinear(Coordinates(1, 0, 0, 0, 0, 0),
+        hal_virtual.move(PulseGeneratorLinear(Coordinates(1, 0, 0, 0, 0, 0, 0, 0),
                                               self.v))
-        hal_virtual.move(PulseGeneratorLinear(Coordinates(25.4, 0, 0, 0, 0, 0),
+        hal_virtual.move(PulseGeneratorLinear(Coordinates(25.4, 0, 0, 0, 0, 0, 0, 0),
                                               self.v))
-        hal_virtual.move(PulseGeneratorLinear(Coordinates(25.4, 0, 0, 0, 0, 0),
+        hal_virtual.move(PulseGeneratorLinear(Coordinates(25.4, 0, 0, 0, 0, 0, 0, 0),
                                               self.v))
-        hal_virtual.move(PulseGeneratorLinear(Coordinates(25.4, 0, 0, 0, 0, 0),
+        hal_virtual.move(PulseGeneratorLinear(Coordinates(25.4, 0, 0, 0, 0, 0, 0, 0),
                                               self.v))
         hal_virtual.move(PulseGeneratorLinear(Coordinates(TABLE_SIZE_X_MM,
                                                           TABLE_SIZE_Y_MM,
                                                           TABLE_SIZE_Z_MM,
-                                                          100.0, 0, 0), self.v))
-        hal_virtual.move(PulseGeneratorCircular(Coordinates(0, 20, 0, 0, 0, 0),
-                                                Coordinates(-10, 10, 0, 0, 0, 0),
+                                                          100.0, 0, 0, 0, 0), self.v))
+        hal_virtual.move(PulseGeneratorCircular(Coordinates(0, 20, 0, 0, 0, 0, 0, 0),
+                                                Coordinates(-10, 10, 0, 0, 0, 0, 0, 0),
                                                 PLANE_XY, CW, self.v))
-        hal_virtual.move(PulseGeneratorCircular(Coordinates(-4, -4, 0, 0, 0, 0),
-                                                Coordinates(-2, -2, 0, 0, 0, 0),
+        hal_virtual.move(PulseGeneratorCircular(Coordinates(-4, -4, 0, 0, 0, 0, 0, 0),
+                                                Coordinates(-2, -2, 0, 0, 0, 0, 0, 0),
                                                 PLANE_XY, CW, self.v))
         delta = Coordinates(- 2.0 / STEPPER_PULSES_PER_MM_X,
-                            - 2.0 / STEPPER_PULSES_PER_MM_Y, 0, 0, 0, 0)
+                            - 2.0 / STEPPER_PULSES_PER_MM_Y, 0, 0, 0, 0, 0, 0)
         radius = Coordinates(- 1.0 / STEPPER_PULSES_PER_MM_X,
-                             - 1.0 / STEPPER_PULSES_PER_MM_Y, 0, 0, 0, 0)
+                             - 1.0 / STEPPER_PULSES_PER_MM_Y, 0, 0, 0, 0, 0, 0)
         hal_virtual.move(PulseGeneratorCircular(delta, radius, PLANE_XY, CW,
                                                 self.v))
 
     def test_twice_faster_linear(self):
         # Checks if one axis moves exactly twice faster, pulses are correct.
-        m = Coordinates(2, 4, 0, 0, 0, 0)
+        m = Coordinates(2, 4, 0, 0, 0, 0, 0, 0)
         g = PulseGeneratorLinear(m, self.v)
         i = 0
         j = 0
         k = 0
-        for direction, px, py, pz, pe, pq, pn in g:
+        for direction, px, py, pz, pe, pq, pn, pa, pb in g:
             if direction:
                 continue
             if py is not None:
@@ -226,13 +244,15 @@ class TestPulses(unittest.TestCase):
             self.assertEqual(pe, None)
             self.assertEqual(pq, None)
             self.assertEqual(pn, None)
+            self.assertEqual(pa, None)
+            self.assertEqual(pb, None)
             i += 1
         self.assertEqual(k / STEPPER_PULSES_PER_MM_Y, m.y)
 
     def test_pulses_count_and_timings(self):
         # Check if number of pulses is equal to specified distance.
         m = Coordinates(TABLE_SIZE_X_MM, TABLE_SIZE_Y_MM, TABLE_SIZE_Z_MM,
-                        100.0, 0, TABLE_SIZE_N_MM)
+                        100.0, 0, MAX_ROTATION_N_MM, MAX_TILT_ANGLE, 0)    # Falls ein maximaler verdrehwinkel des bettes feststeht, den letzten eintrag abaendern
         g = PulseGeneratorLinear(m, self.v)
         ix = 0
         iy = 0
@@ -240,8 +260,10 @@ class TestPulses(unittest.TestCase):
         ie = 0
         iq = 0
         i_n = 0
+        ia = 0
+        ib = 0
         t = -1
-        for direction, px, py, pz, pe, pq, pn in g:
+        for direction, px, py, pz, pe, pq, pn, pa, pb in g:
             if direction:
                 continue
             if px is not None:
@@ -256,7 +278,11 @@ class TestPulses(unittest.TestCase):
                 iq += 1
             if pn is not None:
                 i_n += 1
-            v = list(x for x in (px, py, pz, pe, pq, pn) if x is not None)
+            if pa is not None:
+                ia += 1
+            if pb is not None:
+                ib += 1
+            v = list(x for x in (px, py, pz, pe, pq, pn, pa, pb) if x is not None)
             self.assertEqual(min(v), max(v))
             self.assertLess(t, min(v))
             t = max(v)
@@ -266,31 +292,33 @@ class TestPulses(unittest.TestCase):
         self.assertEqual(m.e * STEPPER_PULSES_PER_MM_E, ie)
         self.assertEqual(m.q * STEPPER_PULSES_PER_MM_Q, iq)
         self.assertEqual(m.n * STEPPER_PULSES_PER_MM_N, i_n)
+        self.assertEqual(m.a * STEPPER_PULSES_PER_MM_A, ia)
+        self.assertEqual(m.b * STEPPER_PULSES_PER_MM_B, ib)
         self.assertLessEqual(t, g.total_time_s())
-        _, pos = self.__check_circular(Coordinates(0, 8, 0, 7, 0, 0),
-                                       Coordinates(1, 0, 1, 0, 0, 0),
+        _, pos = self.__check_circular(Coordinates(0, 8, 0, 7, 0, 0, 0, 0),
+                                       Coordinates(1, 0, 1, 0, 0, 0, 0, 0),
                                        PLANE_ZX, CCW)
-        self.assertEqual(pos, Coordinates(0, 8, 0, 7, 0, 0))
-        _, pos = self.__check_circular(Coordinates(5, 0, 0, 6, 0, 0),
-                                       Coordinates(0, 1, -1, 0, 0, 0),
+        self.assertEqual(pos, Coordinates(0, 8, 0, 7, 0, 0, 0, 0))
+        _, pos = self.__check_circular(Coordinates(5, 0, 0, 6, 0, 0, 0, 0),
+                                       Coordinates(0, 1, -1, 0, 0, 0, 0, 0),
                                        PLANE_YZ, CW)
-        self.assertEqual(pos, Coordinates(5, 0, 0, 6, 0, 0))
-        _, pos = self.__check_circular(Coordinates(-2, -2, 3, 2, 0, 0),
-                                       Coordinates(-1, -1, 0, 0, 0, 0),
+        self.assertEqual(pos, Coordinates(5, 0, 0, 6, 0, 0, 0, 0))
+        _, pos = self.__check_circular(Coordinates(-2, -2, 3, 2, 0, 0, 0, 0),
+                                       Coordinates(-1, -1, 0, 0, 0, 0, 0, 0),
                                        PLANE_XY, CCW)
-        self.assertEqual(pos, Coordinates(-2, -2, 3, 2, 0, 0))
+        self.assertEqual(pos, Coordinates(-2, -2, 3, 2, 0, 0, 0, 0))
 
     def test_acceleration_velocity(self):
         # Check if acceleration present in pulses sequence and if velocity
         # is correct, since PulseGenerator is responsible for this, check only
         # one child class.
-        m = Coordinates(TABLE_SIZE_X_MM, 0, 0, 0, 0, 0)
+        m = Coordinates(TABLE_SIZE_X_MM, 0, 0, 0, 0, 0, 0 ,0)
         velocity = 1000
         g = PulseGeneratorLinear(m, velocity)
         i = 0
         lx = 0
         lt, at, bt = None, None, None
-        for direction, px, py, pz, pe, pq, pn in g:
+        for direction, px, py, pz, pe, pq, pn, pa, pb in g:
             if direction:
                 continue
             if i == 2:
@@ -306,10 +334,10 @@ class TestPulses(unittest.TestCase):
 
     def test_directions(self):
         # Check if directions are set up correctly.
-        m = Coordinates(1, -2, 3, -4, 3, -2)
+        m = Coordinates(1, -2, 3, -4, 3, -2, 1, -4)
         g = PulseGeneratorLinear(m, self.v)
         dir_found = False
-        for direction, px, py, pz, pe, pq, pn in g:
+        for direction, px, py, pz, pe, pq, pn, pa, pb in g:
             if direction:
                 if STEPPER_INVERTED_X:
                     px = -px
@@ -323,15 +351,19 @@ class TestPulses(unittest.TestCase):
                     pq = -pq
                 if STEPPER_INVERTED_N:
                     pn = -pn
+                if STEPPER_INVERTED_A:
+                    pa = -pa
+                if STEPPER_INVERTED_B:
+                    pb = -pb
                 # should be once
                 self.assertFalse(dir_found)
                 dir_found = True
                 # check dirs
-                self.assertTrue(px > 0 and py < 0 and pz > 0 and pe < 0 and pq > 0 and pn < 0)
-        m = Coordinates(-1, 2, -3, 4, -3, 2)
+                self.assertTrue(px > 0 and py < 0 and pz > 0 and pe < 0 and pq > 0 and pn < 0 and pa > 0 and pb < 0)
+        m = Coordinates(-1, 2, -3, 4, -3, 2, -1, 4)
         g = PulseGeneratorLinear(m, self.v)
         dir_found = False
-        for direction, px, py, pz, pe, pq, pn in g:
+        for direction, px, py, pz, pe, pq, pn, pa, pb in g:
             if direction:
                 if STEPPER_INVERTED_X:
                     px = -px
@@ -345,14 +377,18 @@ class TestPulses(unittest.TestCase):
                     pq = -pq
                 if STEPPER_INVERTED_N:
                     pn = -pn
+                if STEPPER_INVERTED_A:
+                    pa = -pa
+                if STEPPER_INVERTED_B:
+                    pb = -pb
                 # should be once
                 self.assertFalse(dir_found)
                 dir_found = True
                 # check dirs
-                self.assertTrue(px < 0 and py > 0 and pz < 0 and pe > 0 and pq < 0 and pn > 0)
+                self.assertTrue(px < 0 and py > 0 and pz < 0 and pe > 0 and pq < 0 and pn > 0 and pa < 0 and pb > 0)
         # check for circle, full circle
-        dir_changed, _ = self.__check_circular(Coordinates(0, 0, 0, 0, 0, 0),
-                                               Coordinates(1.0, 1.0, 0, 0, 0, 0),
+        dir_changed, _ = self.__check_circular(Coordinates(0, 0, 0, 0, 0, 0, 0, 0),
+                                               Coordinates(1.0, 1.0, 0, 0, 0, 0, 0, 0),
                                                PLANE_ZX, CCW)
         self.assertEqual(dir_changed, 6)    # Fix ERROR in test_directions previous value: 4
 
