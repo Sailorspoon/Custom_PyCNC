@@ -297,6 +297,12 @@ class PulseGeneratorLinear(PulseGenerator):
         distance_mm.z = height_carriage_mm['c'] - height_carriage_mm_old['c']
         # velocity of each axis
         velocity_carriage_mm_per_min = 0.0
+        velocity_mm_per_min.x = velocity_mm_per_min *\
+                                (delta_mm.x / math.sqrt(delta_mm.x ** 2 + delta_mm.y ** 2 + delta_mm.z ** 2))
+        velocity_mm_per_min.y = velocity_mm_per_min * \
+                                (delta_mm.y / math.sqrt(delta_mm.x ** 2 + delta_mm.y ** 2 + delta_mm.z ** 2))
+        velocity_mm_per_min.z = velocity_mm_per_min * \
+                                (delta_mm.z / math.sqrt(delta_mm.x ** 2 + delta_mm.y ** 2 + delta_mm.z ** 2))
         # Geschwindigkeit der carriages bestimmt aus Ableitungen der Carriagebewegung
         velocity_carriage_mm_per_min.x = (velocity_mm_per_min.x * (radius_heatbed - distance_pivot_tool_mm - tu['x']) -
                                           tu['y'] * velocity_mm_per_min.y) / \
@@ -306,7 +312,7 @@ class PulseGeneratorLinear(PulseGenerator):
                                          ((((math.sqrt(3)/2) * radius_heatbed) - (radius_heatbed / 2) -
                                            (((math.sqrt(3)/2) * distance_pivot_tool_mm) + tu['y']) ** 2 +
                                            (distance_pivot_tool_mm / 2 ) - tu['x']) *
-                                          (-2 ((math.sqrt(3)/2)* distance_pivot_tool_mm + tu['y']) *
+                                          (-2 * ((math.sqrt(3)/2)* distance_pivot_tool_mm + tu['y']) *
                                            velocity_mm_per_min.y - velocity_mm_per_min.x)) / \
                                          (math.sqrt(length_arm['b'] ** 2 -
                                                     (((math.sqrt(3)/2) * radius_heatbed) - (radius_heatbed / 2) -
