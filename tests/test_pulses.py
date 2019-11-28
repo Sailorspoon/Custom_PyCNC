@@ -232,7 +232,7 @@ class TestPulses(unittest.TestCase):
     def test_pulses_count_and_timings(self):
         # Check if number of pulses is equal to specified distance.
         m = Coordinates(TABLE_SIZE_X_MM, TABLE_SIZE_Y_MM, TABLE_SIZE_Z_MM,
-                        100.0, 0, MAX_ROTATION_N_MM)
+                        100.0, 0, TABLE_SIZE_N_MM)
         g = PulseGeneratorLinear(m, self.v)
         ix = 0
         iy = 0
