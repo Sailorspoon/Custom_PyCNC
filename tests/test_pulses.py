@@ -42,7 +42,7 @@ class TestPulses(unittest.TestCase):
                                              0, 0, 0, 0, 0, 0, 0),
                                  self.v)
         i = 0
-        for direction, px, py, pz, pe, pq, pn in g:
+        for direction, px, py, pz, pe, pq, pn, pa, pb in g:
             if direction:
                 continue
             i += 1
