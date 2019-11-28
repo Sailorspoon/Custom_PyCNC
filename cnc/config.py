@@ -5,11 +5,12 @@ import math
 
 # neue Parameter fuer Delta-Logik
 distance_pivot_carriage_mm = {'a': 0, 'b': 0, 'c': 0}
-radius_heatbed = 263
+radius_heatbed = 263  # Abstand Mittelpunkt und Carriageschlitten auf xy-Ebene
 height_pivot_tool_mm = 22
 height_carriage_mm = {'a': 0, 'b': 0, 'c': 0}
 length_arm = {'a': 400, 'b': 400, 'c': 400}
 distance_pivot_tool_mm = 40
+tu = {'x': 0, 'y': 0, 'z': 0}
 
 
 # Startwerte der carriage high (tx, ty, tz = 0)
@@ -65,6 +66,7 @@ ENDSTOP_INVERTED_Z = False  # Auto leveler
 TABLE_SIZE_X_MM = 100
 TABLE_SIZE_Y_MM = 100
 TABLE_SIZE_Z_MM = 455
+TABLE_SIZE_RADIUS_MM = 180
 
 # Mixed settings.
 STEPPER_PULSE_LENGTH_US = 2
