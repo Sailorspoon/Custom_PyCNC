@@ -130,7 +130,9 @@ class GMachine(object):
                             1.0 / STEPPER_PULSES_PER_MM_Z,
                             1.0 / STEPPER_PULSES_PER_MM_E,
                             1.0 / STEPPER_PULSES_PER_MM_Q,
-                            1.0 / STEPPER_PULSES_PER_MM_N)
+                            1.0 / STEPPER_PULSES_PER_MM_N,
+                            1.0 / STEPPER_PULSES_PER_MM_A,
+                            1.0 / STEPPER_PULSES_PER_MM_B)
         if delta.is_zero():
             return
         self.__check_delta(delta)
