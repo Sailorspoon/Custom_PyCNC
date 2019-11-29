@@ -1,4 +1,4 @@
-# 29.11.2019 Aenderungen Max
+# 28.11.2019 Christian A und B Achsen eingefuegt
 import unittest
 
 from cnc.gcode import *
@@ -72,15 +72,24 @@ class TestGMachine(unittest.TestCase):
         self.assertRaises(GMachineException,
                           m.do_command, GCode.parse_line("G1X1F-1"))
         cl = "G1X1F" + str(MIN_VELOCITY_MM_PER_MIN - 0.0000001)
-        self.assertRaises(GMachineException, m.do_command, GCode.parse_line(cl))
-        m.do_command(GCode.parse_line("G1X100F" + str(MAX_VELOCITY_MM_PER_MIN_X)))
-        m.do_command(GCode.parse_line("G1Y100F" + str(MAX_VELOCITY_MM_PER_MIN_Y)))
-        m.do_command(GCode.parse_line("G1Z100F" + str(MAX_VELOCITY_MM_PER_MIN_Z)))
-        m.do_command(GCode.parse_line("G1E100F" + str(MAX_VELOCITY_MM_PER_MIN_E)))
-        m.do_command(GCode.parse_line("G1Q100F" + str(MAX_VELOCITY_MM_PER_MIN_Q)))
-        m.do_command(GCode.parse_line("G1N100F" + str(MAX_VELOCITY_MM_PER_MIN_N)))
-        m.do_command(GCode.parse_line("G1A100F" + str(MAX_VELOCITY_MM_PER_MIN_A)))
-        m.do_command(GCode.parse_line("G1B100F" + str(MAX_VELOCITY_MM_PER_MIN_B)))
+        self.assertRaises(GMachineException, m.do_command,
+                          GCode.parse_line(cl))
+        m.do_command(GCode.parse_line("G1X100F"
+                                      + str(MAX_VELOCITY_MM_PER_MIN_X)))
+        m.do_command(GCode.parse_line("G1Y100F"
+                                      + str(MAX_VELOCITY_MM_PER_MIN_Y)))
+        m.do_command(GCode.parse_line("G1Z100F"
+                                      + str(MAX_VELOCITY_MM_PER_MIN_Z)))
+        m.do_command(GCode.parse_line("G1E100F"
+                                      + str(MAX_VELOCITY_MM_PER_MIN_E)))
+        m.do_command(GCode.parse_line("G1Q100F"
+                                      + str(MAX_VELOCITY_MM_PER_MIN_Q)))
+        m.do_command(GCode.parse_line("G1N100F"
+                                      + str(MAX_VELOCITY_MM_PER_MIN_N)))
+        m.do_command(GCode.parse_line("G1A100F"
+                                      + str(MAX_VELOCITY_MM_PER_MIN_A)))
+        m.do_command(GCode.parse_line("G1B100F"
+                                      + str(MAX_VELOCITY_MM_PER_MIN_B)))
         self.assertRaises(GMachineException,
                           m.do_command, GCode.parse_line("G1X0F999999"))
         s = "G1X0F" + str(MAX_VELOCITY_MM_PER_MIN_X + 1)

@@ -1,3 +1,4 @@
+# coding=utf-8
 import os
 import mmap
 import struct
@@ -8,8 +9,10 @@ import atexit
 import ctypes
 
 # Raspberry Pi registers
-# https://www.raspberrypi.org/wp-content/uploads/2012/02/BCM2835-ARM-Peripherals.pdf
+# https://www.raspberrypi.org/wp-content/uploads/2012/02/BCM2835-ARM-Peripherals.pdf (1)
+""" Physical Adress of Peripherals - Achtung, das gilt nur fuer Raspberry Pi 1"""
 RPI1_PERI_BASE = 0x20000000
+""" Adresse der Peripherals fuer Pi 2 und/oder 3 """
 RPI2_3_PERI_BASE = 0x3F000000
 # detect board version
 try:
@@ -31,23 +34,41 @@ try:
             raise ImportError("Unknown board.")
 except IOError:
     raise ImportError("/proc/cpuinfo not found. Not Linux device?")
-PAGE_SIZE = 4096
+# Fuer die folgenden Adressen ist (1) Seite 89 ff. hilfreich
+# GPIO has up to 54 I/Os with each at least two different functions
+PAGE_SIZE = 4096    # Festsetzen der pagesize - kann die noch geaendert werden?
 GPIO_REGISTER_BASE = 0x200000
-GPIO_INPUT_OFFSET = 0x34
-GPIO_SET_OFFSET = 0x1C
-GPIO_CLEAR_OFFSET = 0x28
-GPIO_FSEL_OFFSET = 0x0
-GPIO_PULLUPDN_OFFSET = 0x94
-GPIO_PULLUPDNCLK_OFFSET = 0x98
-PHYSICAL_GPIO_BUS = 0x7E000000 + GPIO_REGISTER_BASE
+GPIO_INPUT_OFFSET = 0x34    # GPLEV0 Input State of all 32 GPIOs
+GPIO_SET_OFFSET = 0x1C    # GPSET0 Output Setting
+GPIO_CLEAR_OFFSET = 0x28    # GPCLR0 clear all 1's in corresponding register
+GPIO_FSEL_OFFSET = 0x0    # GPFSEL0 Function selection
+# GPPUD has no read-back functionality
+GPIO_PULLUPDN_OFFSET = 0x94    # GPPUD controls the actuation of the internal pull-up/down
+GPIO_PULLUPDNCLK_OFFSET = 0x98    # GPPUDCLK0 in conjunction with GPPUD
+# See (1) page 101:
+# The GPIO Pull-up/down Clock Registers control the actuation of internal pull-downs on
+# the respective GPIO pins. These registers must be used in conjunction with the GPPUD
+# register to effect GPIO Pull-up/down changes. The following sequence of events is
+# required:
+# 1. Write to GPPUD to set the required control signal (i.e. Pull-up or Pull-Down or neither
+# to remove the current Pull-up/down)
+# 2. Wait 150 cycles – this provides the required set-up time for the control signal
+# 3. Write to GPPUDCLK0/1 to clock the control signal into the GPIO pads you wish to
+# modify – NOTE only the pads which receive a clock will be modified, all others will
+# retain their previous state.
+# 4. Wait 150 cycles – this provides the required hold time for the control signal
+# 5. Write to GPPUD to remove the control signal
+# 6. Write to GPPUDCLK0/1 to remove the clock
+PHYSICAL_GPIO_BUS = 0x7E000000 + GPIO_REGISTER_BASE     # bus address - VC/ARM MMU
 
 # registers and values for DMA
-DMA_BASE = 0x007000
-DMA_CS = 0x00
-DMA_CONBLK_AD = 0x04
-DMA_NEXTCONBK = 0x1C
-DMA_TI_NO_WIDE_BURSTS = 1 << 26
-DMA_TI_SRC_INC = 1 << 8
+# for explanation see (1) page 41 ff.
+DMA_BASE = 0x007000    # address of DMA channel 0 register set
+DMA_CS = 0x00    # global enable register
+DMA_CONBLK_AD = 0x04    # DMA control block address
+DMA_NEXTCONBK = 0x1C    # Next control block address
+DMA_TI_NO_WIDE_BURSTS = 1 << 26    # 0_TI (DMA Transfer Information) Register AXI bursts
+DMA_TI_SRC_INC = 1 << 8    #
 DMA_TI_DEST_INC = 1 << 4
 DMA_SRC_IGNORE = 1 << 11
 DMA_DEST_IGNORE = 1 << 7
