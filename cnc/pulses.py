@@ -269,62 +269,63 @@ class PulseGeneratorLinear(PulseGenerator):
 
         # Berechnung der auf x,y Ebene projezierten Distanz zwischen Pivot und Carriage,
         # Berechnung der Carriage Hoehe
-        height_carriage_mm['a'] = round(tu['z'] + height_pivot_tool_mm\
+        height_carriage_mm['a'] = tu['z'] + height_pivot_tool_mm\
                                   + math.sqrt(length_arm['a'] ** 2
                                               - ((radius_heatbed - (tu['x'] + distance_pivot_tool_mm)) ** 2
-                                                 + (0 - tu['y']) ** 2)), 5)
-        height_carriage_mm['b'] = round(tu['z'] + height_pivot_tool_mm\
+                                                 + (0 - tu['y']) ** 2))
+        height_carriage_mm['b'] = tu['z'] + height_pivot_tool_mm\
                                   + math.sqrt(length_arm['b'] ** 2 - ((radius_heatbed * math.cos(math.radians(120))
                                                   - (tu['x'] + distance_pivot_tool_mm *
                                                      math.cos(math.radians(120)))) ** 2
                                                                       + (radius_heatbed * math.sin(math.radians(120))
                                                                          - (tu['y'] + distance_pivot_tool_mm
-                                                                            * math.sin(math.radians(120)))) ** 2)), 5)
-        height_carriage_mm['c'] = round(tu['z'] + height_pivot_tool_mm\
+                                                                            * math.sin(math.radians(120)))) ** 2))
+        height_carriage_mm['c'] = tu['z'] + height_pivot_tool_mm\
                                   + math.sqrt(length_arm['c'] ** 2 - ((radius_heatbed * math.cos(math.radians(240))
                                                      - (tu['x'] + distance_pivot_tool_mm *
                                                         math.cos(math.radians(240)))) ** 2
                                                     + (radius_heatbed * math.sin(math.radians(240))
                                                        - (tu['y'] + distance_pivot_tool_mm *
-                                                          math.sin(math.radians(240)))) ** 2)), 5)
+                                                          math.sin(math.radians(240)))) ** 2))
         # zu fahrende Hoehe des Carriage
         distance_mm.x = height_carriage_mm['a'] - height_carriage_mm_old['a']
         distance_mm.y = height_carriage_mm['b'] - height_carriage_mm_old['b']
         distance_mm.z = height_carriage_mm['c'] - height_carriage_mm_old['c']
         # velocity of each axis
-        velocity_carriage_mm_per_min = 0.0
-        velocity_mm_per_min.x = velocity_mm_per_min *\
+        velocity_carriage_mm_per_min = delta_mm
+        velocity_mm_per_min_axis = delta_mm
+        velocity_mm_per_min_axis.x = velocity_mm_per_min *\
                                 (delta_mm.x / math.sqrt(delta_mm.x ** 2 + delta_mm.y ** 2 + delta_mm.z ** 2))
-        velocity_mm_per_min.y = velocity_mm_per_min * \
+        velocity_mm_per_min_axis.y = velocity_mm_per_min * \
                                 (delta_mm.y / math.sqrt(delta_mm.x ** 2 + delta_mm.y ** 2 + delta_mm.z ** 2))
-        velocity_mm_per_min.z = velocity_mm_per_min * \
+        velocity_mm_per_min_axis.z = velocity_mm_per_min * \
                                 (delta_mm.z / math.sqrt(delta_mm.x ** 2 + delta_mm.y ** 2 + delta_mm.z ** 2))
+
         # Geschwindigkeit der carriages bestimmt aus Ableitungen der Carriagebewegung
-        velocity_carriage_mm_per_min.x = (velocity_mm_per_min.x * (radius_heatbed - distance_pivot_tool_mm - tu['x']) -
-                                          tu['y'] * velocity_mm_per_min.y) / \
+        velocity_carriage_mm_per_min.x = (velocity_mm_per_min_axis.x * (radius_heatbed - distance_pivot_tool_mm - tu['x']) -
+                                          tu['y'] * velocity_mm_per_min_axis.y) / \
                                          (math.sqrt( - (radius_heatbed - distance_pivot_tool_mm - tu['x']) ** 2 +
-                                                     (length_arm['a']) ** 2 - (tu['y']) ** 2)) + velocity_mm_per_min.z
-        velocity_carriage_mm_per_min.y = velocity_mm_per_min.z - \
-                                         ((((math.sqrt(3)/2) * radius_heatbed) - (radius_heatbed / 2) -
-                                           (((math.sqrt(3)/2) * distance_pivot_tool_mm) + tu['y']) ** 2 +
-                                           (distance_pivot_tool_mm / 2 ) - tu['x']) *
-                                          (-2 * ((math.sqrt(3)/2)* distance_pivot_tool_mm + tu['y']) *
-                                           velocity_mm_per_min.y - velocity_mm_per_min.x)) / \
-                                         (math.sqrt(length_arm['b'] ** 2 -
-                                                    (((math.sqrt(3)/2) * radius_heatbed) - (radius_heatbed / 2) -
-                                                     (((math.sqrt(3)/2) * distance_pivot_tool_mm) + tu['y']) ** 2 +
-                                                     (distance_pivot_tool_mm / 2) - tu['x']) ** 2))
-        velocity_carriage_mm_per_min.z = velocity_mm_per_min.z - \
-                                         ((-((math.sqrt(3) * radius_heatbed) / 2) - (radius_heatbed / 2) -
-                                           (tu['y'] - ((math.sqrt(3) * distance_pivot_tool_mm) / 2)) ** 2 +
-                                           (distance_pivot_tool_mm / 2) - tu['x']) *
-                                          (-2 * (tu['y'] - ((math.sqrt(3) * distance_pivot_tool_mm) / 2))
-                                           * velocity_mm_per_min.y - velocity_mm_per_min.x)) / \
-                                         (math.sqrt(length_arm['c']
-                                                    ** 2 - (-((math.sqrt(3) * radius_heatbed)
-                                                              / 2) - (radius_heatbed / 2) -
-                                                            (tu['y'] - ((math.sqrt(3) * distance_pivot_tool_mm) / 2))
-                                                            ** 2 + (distance_pivot_tool_mm / 2) - tu['x'])))
+                                                     (length_arm['a']) ** 2 - (tu['y']) ** 2)) + velocity_mm_per_min_axis.z
+        velocity_carriage_mm_per_min.y = velocity_mm_per_min_axis.z + \
+                                         (velocity_mm_per_min_axis.x *
+                                          (- radius_heatbed / 2 + distance_pivot_tool_mm / 2 - tu['x']) +
+                                          velocity_mm_per_min_axis.y * ( math.sqrt(3) * radius_heatbed / 2 -
+                                                                         (math.sqrt(3) * distance_pivot_tool_mm) / 2
+                                                                         - tu['y'])) \
+                                         / (math.sqrt(- (- radius_heatbed / 2 + distance_pivot_tool_mm / 2 - tu['x'])
+                                                        ** 2 - ( math.sqrt(3) * radius_heatbed / 2 - math.sqrt(3)
+                                                                 * distance_pivot_tool_mm / 2 - tu['y'])
+                                                      ** 2 + length_arm['b'] ** 2))
+        velocity_carriage_mm_per_min.z = velocity_mm_per_min_axis.z + \
+                                         (velocity_mm_per_min_axis.x *
+                                          (- radius_heatbed / 2 + distance_pivot_tool_mm / 2 - tu['x']) +
+                                          velocity_mm_per_min_axis.y * (-math.sqrt(3) * radius_heatbed / 2 +
+                                                                        (math.sqrt(3) * distance_pivot_tool_mm) / 2
+                                                                        - tu['y']))\
+                                         / (math.sqrt(- (- radius_heatbed / 2 + distance_pivot_tool_mm / 2 - tu['x'])
+                                                        ** 2 - (-math.sqrt(3) * radius_heatbed / 2 + math.sqrt(3)
+                                                                * distance_pivot_tool_mm / 2 - tu['y'])
+                                                      ** 2 + length_arm['c'] ** 2))
 
         distance_total_mm = abs(distance_mm.length())
         self.max_velocity_mm_per_sec = self._adjust_velocity(abs(distance_mm) * (
