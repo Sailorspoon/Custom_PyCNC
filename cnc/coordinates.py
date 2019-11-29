@@ -1,4 +1,4 @@
-# Aenderung Max 28.11.2019
+# Aenderung Max 29.11.2019
 from __future__ import division
 import math
 
@@ -7,6 +7,7 @@ class Coordinates(object):
     """ This object represent machine coordinates.
         Machine supports 3 axis, so there are X, Y and Z.
     """
+
     def __init__(self, x, y, z, e, q, n, a, b):
         """ Create object.
         :param x: x coordinated.
@@ -17,9 +18,9 @@ class Coordinates(object):
         self.y = round(y, 10)
         self.z = round(z, 10)
         self.e = round(e, 10)
-        self.q = round(q, 10)    # Einfuegen der anderen FHG
-        self.n = round(n, 10)    # Einfuegen der anderen FHG
-        self.a = round(a, 10)
+        self.q = round(q, 10)  # Einfuegen der anderen FHG
+        self.n = round(n, 10)  # Einfuegen der anderen FHG
+        self.a = round(a, 15)
         self.b = round(b, 10)
 
     def is_zero(self):
@@ -40,8 +41,8 @@ class Coordinates(object):
         min_x, max_x = sorted((p1.x, p2.x))
         min_y, max_y = sorted((p1.y, p2.y))
         min_z, max_z = sorted((p1.z, p2.z))
-        min_n, max_n = sorted((p1.n, p2.n))    # Als Maximal/minimal ueberpruefung des Verdrehwinkels
-        min_a, max_a = sorted((p1.a, p2.a))    # Nur Kippmechanismus mit hartem Anschlag erwartet
+        min_n, max_n = sorted((p1.n, p2.n))  # Als Maximal/minimal ueberpruefung des Verdrehwinkels
+        min_a, max_a = sorted((p1.a, p2.a))  # Nur Kippmechanismus mit hartem Anschlag erwartet
         if self.x < min_x or self.y < min_y or self.z < min_z or self.n < min_n or self.a < min_a:
             return False
         if self.x > max_x or self.y > max_y or self.z > max_z or self.n > max_n or self.a > max_a:
@@ -57,7 +58,6 @@ class Coordinates(object):
         """
         return math.sqrt(self.x * self.x + self.y * self.y + self.z * self.z
                          + self.e * self.e + self.q * self.q + self.n * self.n + self.a * self.a + self.b * self.b)
-
 
     def round(self, base_x, base_y, base_z, base_e, base_q, base_n, base_a, base_b):
         """ Round values to specified base, ie 0.49 with base 0.25 will be 0.5.
@@ -90,6 +90,7 @@ class Coordinates(object):
 
     # build in function implementation
     """ Anpassen aller Funktionen an die neuen FHG"""
+
     def __add__(self, other):
         return Coordinates(self.x + other.x, self.y + other.y,
                            self.z + other.z, self.e + other.e,
@@ -100,7 +101,7 @@ class Coordinates(object):
         return Coordinates(self.x - other.x, self.y - other.y,
                            self.z - other.z, self.e - other.e,
                            self.q - other.q, self.n - other.n,
-                           self.a + other.a, self.b + other.b)
+                           self.a - other.a, self.b - other.b)
 
     def __mul__(self, v):
         """
@@ -131,7 +132,7 @@ class Coordinates(object):
     def __str__(self):
         return '(' + str(self.x) + ', ' + str(self.y) + ', ' + str(self.z) \
                + ', ' + str(self.e) + ', ' + str(self.q) + '. ' + str(self.n) \
-                + '. ' + str(self.a) + '. ' + str(self.b) + ')'
+               + '. ' + str(self.a) + '. ' + str(self.b) + ')'
 
     def __abs__(self):
         return Coordinates(abs(self.x), abs(self.y), abs(self.z),

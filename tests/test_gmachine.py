@@ -1,4 +1,4 @@
-# 28.11.2019 Christian A und B Achsen eingefuegt
+# 29.11.2019 Aenderungen Max
 import unittest
 
 from cnc.gcode import *
@@ -72,24 +72,15 @@ class TestGMachine(unittest.TestCase):
         self.assertRaises(GMachineException,
                           m.do_command, GCode.parse_line("G1X1F-1"))
         cl = "G1X1F" + str(MIN_VELOCITY_MM_PER_MIN - 0.0000001)
-        self.assertRaises(GMachineException, m.do_command,
-                          GCode.parse_line(cl))
-        m.do_command(GCode.parse_line("G1X100F"
-                                      + str(MAX_VELOCITY_MM_PER_MIN_X)))
-        m.do_command(GCode.parse_line("G1Y100F"
-                                      + str(MAX_VELOCITY_MM_PER_MIN_Y)))
-        m.do_command(GCode.parse_line("G1Z100F"
-                                      + str(MAX_VELOCITY_MM_PER_MIN_Z)))
-        m.do_command(GCode.parse_line("G1E100F"
-                                      + str(MAX_VELOCITY_MM_PER_MIN_E)))
-        m.do_command(GCode.parse_line("G1Q100F"
-                                      + str(MAX_VELOCITY_MM_PER_MIN_Q)))
-        m.do_command(GCode.parse_line("G1N100F"
-                                      + str(MAX_VELOCITY_MM_PER_MIN_N)))
-        m.do_command(GCode.parse_line("G1A100F"
-                                      + str(MAX_VELOCITY_MM_PER_MIN_A))
-        m.do_command(GCode.parse_line("G1B100F"
-                                      + str(MAX_VELOCITY_MM_PER_MIN_B)))
+        self.assertRaises(GMachineException, m.do_command, GCode.parse_line(cl))
+        m.do_command(GCode.parse_line("G1X100F" + str(MAX_VELOCITY_MM_PER_MIN_X)))
+        m.do_command(GCode.parse_line("G1Y100F" + str(MAX_VELOCITY_MM_PER_MIN_Y)))
+        m.do_command(GCode.parse_line("G1Z100F" + str(MAX_VELOCITY_MM_PER_MIN_Z)))
+        m.do_command(GCode.parse_line("G1E100F" + str(MAX_VELOCITY_MM_PER_MIN_E)))
+        m.do_command(GCode.parse_line("G1Q100F" + str(MAX_VELOCITY_MM_PER_MIN_Q)))
+        m.do_command(GCode.parse_line("G1N100F" + str(MAX_VELOCITY_MM_PER_MIN_N)))
+        m.do_command(GCode.parse_line("G1A100F" + str(MAX_VELOCITY_MM_PER_MIN_A)))
+        m.do_command(GCode.parse_line("G1B100F" + str(MAX_VELOCITY_MM_PER_MIN_B)))
         self.assertRaises(GMachineException,
                           m.do_command, GCode.parse_line("G1X0F999999"))
         s = "G1X0F" + str(MAX_VELOCITY_MM_PER_MIN_X + 1)
@@ -107,7 +98,8 @@ class TestGMachine(unittest.TestCase):
         PulseGenerator.AUTO_VELOCITY_ADJUSTMENT = True
         m.do_command(GCode.parse_line("G1X10Y10Z10F9999999999999999999"))
         m.do_command(GCode.parse_line("G2I0.1F9999999999999999999"))
-        m.do_command(GCode.parse_line("G2I10F9999999999999999999"))   # Spaeter checken ob es hier einen Error gibt, ggf ergaenzen
+        m.do_command(GCode.parse_line("G2I10F9999999999999999999"))
+        # Spaeter checken ob es hier einen Error gibt, ggf ergaenzen
         PulseGenerator.AUTO_VELOCITY_ADJUSTMENT = AUTO_VELOCITY_ADJUSTMENT
 
     def test_g2_g3(self):
@@ -129,7 +121,7 @@ class TestGMachine(unittest.TestCase):
         self.assertRaises(GMachineException,
                           m.do_command,
                           GCode.parse_line("G2X2Y2Z99999999I1J1"))
-        self.assertEqual(m.position(), Coordinates(0, 0, 0, 0, 0, 0))
+        self.assertEqual(m.position(), Coordinates(0, 0, 0, 0, 0, 0, 0, 0))
         self.assertRaises(GMachineException,
                           m.do_command, GCode.parse_line("G2X4Y4I2J2"))
         self.assertRaises(GMachineException,
@@ -145,7 +137,7 @@ class TestGMachine(unittest.TestCase):
         m.do_command(GCode.parse_line("G19"))
         m.do_command(GCode.parse_line("G1X10Y10Z10N5"))
         m.do_command(GCode.parse_line("G3Y8K1Q1A3B2"))
-        self.assertEqual(m.position(), Coordinates(10, 8, 10, 0, 1, 3, 2))
+        self.assertEqual(m.position(), Coordinates(0, 10, 8, 10, 0, 1, 3, 2))
         m.do_command(GCode.parse_line("G17"))
         m.do_command(GCode.parse_line("G1X5Y5Z0Q2A5"))
         m.do_command(GCode.parse_line("G2X0Y0Z5I-2J-2Q5A2B2"))
@@ -186,7 +178,8 @@ class TestGMachine(unittest.TestCase):
         m = GMachine()
         m.do_command(GCode.parse_line("G20"))    # Ab hier ist der G-Code in inches
         m.do_command(GCode.parse_line("X3Y2Z1E0.5Q2N1A5B7"))
-        self.assertEqual(m.position(), Coordinates(76.2, 50.8, 25.4, 12.7, 50.8, 25.4, 127, 177.8))    # Rechnet den angegebenen G-Code von inches zu millimeter
+        self.assertEqual(m.position(), Coordinates(76.2, 50.8, 25.4, 12.7, 50.8, 25.4, 127, 177.8))
+        # Rechnet den angegebenen G-Code von inches zu millimeter
         m.do_command(GCode.parse_line("G21"))   # Ab hier ist der G-Code in millimeter
         m.do_command(GCode.parse_line("X3Y2Z1E0.5Q2N1A2B3"))
         self.assertEqual(m.position(), Coordinates(3, 2, 1, 0.5, 2, 1, 2, 3))
@@ -225,7 +218,8 @@ class TestGMachine(unittest.TestCase):
         self.assertEqual(m.position(), Coordinates(6, 7, 8, 10, 10, 11, 12, 13))
         m.do_command(GCode.parse_line("G92"))
         m.do_command(GCode.parse_line("X1Y1Z1E1Q1N1A1B1"))
-        self.assertEqual(m.position(), Coordinates(7, 8, 9, 11, 11, 12, 13, 14))    #Unsicher bei dieser Zeile aber why not koennte ja amazing werden
+        self.assertEqual(m.position(), Coordinates(7, 8, 9, 11, 11, 12, 13, 14))
+        # Unsicher bei dieser Zeile aber why not koennte ja amazing werden
 
     def test_g53_g91_g92(self):
         m = GMachine()
@@ -290,7 +284,7 @@ class TestGMachine(unittest.TestCase):
         m.AUTO_FAN_ON = False
 
     def test_m140_m190(self):
-        #Abfrage von heater bed und heater temperature, aber unsicher
+        # Abfrage von heater bed und heater temperature, aber unsicher
         m = GMachine()
         m.do_command(GCode.parse_line("M140S"+str(MIN_TEMPERATURE)))
         self.assertEqual(m.bed_target_temperature(), MIN_TEMPERATURE)

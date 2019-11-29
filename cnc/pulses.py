@@ -1,4 +1,4 @@
-# Aenderung Max 28.11.2019
+# Aenderung Max 29.11.2019
 # coding=utf-8
 from __future__ import division
 import logging
@@ -45,6 +45,7 @@ class PulseGenerator(object):
         self._iteration_z = 0
         self._iteration_e = 0
         self._iteration_q = 0
+        self._iteration_n = 0
         self._iteration_a = 0
         self._iteration_b = 0
         self._iteration_direction = None
@@ -488,7 +489,7 @@ class PulseGeneratorCircular(PulseGenerator):
             else:
                 self._dir_bc = -1
             if math.pi / 2 <= start_angle < 3 * math.pi / 2:
-                self._dir_a = -1
+                self._dir_ac = -1
             else:
                 self._dir_ac = 1
         elif direction == CCW:

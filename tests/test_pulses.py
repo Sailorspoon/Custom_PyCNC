@@ -1,4 +1,4 @@
-# Aenderung Christian 28.11.2019 einfuegen der druckbettachsen
+# Aenderung Max 29.11.2019
 import unittest
 
 from cnc.pulses import *
@@ -50,7 +50,7 @@ class TestPulses(unittest.TestCase):
             self.assertEqual(py, None)
             self.assertEqual(pz, None)
             self.assertEqual(pe, None)
-            self.assertEqual(pq, None)
+            self.assertEqual(pq, 0)
             self.assertEqual(pn, None)
             self.assertEqual(pa, None)
             self.assertEqual(pb, None)
@@ -252,7 +252,8 @@ class TestPulses(unittest.TestCase):
     def test_pulses_count_and_timings(self):
         # Check if number of pulses is equal to specified distance.
         m = Coordinates(TABLE_SIZE_X_MM, TABLE_SIZE_Y_MM, TABLE_SIZE_Z_MM,
-                        100.0, 0, MAX_ROTATION_N_MM, MAX_TILT_ANGLE, 0)    # Falls ein maximaler verdrehwinkel des bettes feststeht, den letzten eintrag abaendern
+                        100.0, 0, MAX_ROTATION_N_MM, MAX_TILT_ANGLE, 0)
+        # Falls ein maximaler verdrehwinkel des bettes feststeht, den letzten eintrag abaendern
         g = PulseGeneratorLinear(m, self.v)
         ix = 0
         iy = 0
@@ -312,7 +313,7 @@ class TestPulses(unittest.TestCase):
         # Check if acceleration present in pulses sequence and if velocity
         # is correct, since PulseGenerator is responsible for this, check only
         # one child class.
-        m = Coordinates(TABLE_SIZE_X_MM, 0, 0, 0, 0, 0, 0 ,0)
+        m = Coordinates(TABLE_SIZE_X_MM, 0, 0, 0, 0, 0, 0, 0)
         velocity = 1000
         g = PulseGeneratorLinear(m, velocity)
         i = 0
@@ -359,7 +360,7 @@ class TestPulses(unittest.TestCase):
                 self.assertFalse(dir_found)
                 dir_found = True
                 # check dirs
-                self.assertTrue(px > 0 and py < 0 and pz > 0 and pe < 0 and pq > 0 and pn < 0 and pa > 0 and pb < 0)
+                self.assertTrue(px > 0 > py and pz > 0 > pe and pq > 0 > pn and pa > 0 > pb)
         m = Coordinates(-1, 2, -3, 4, -3, 2, -1, 4)
         g = PulseGeneratorLinear(m, self.v)
         dir_found = False
@@ -385,7 +386,7 @@ class TestPulses(unittest.TestCase):
                 self.assertFalse(dir_found)
                 dir_found = True
                 # check dirs
-                self.assertTrue(px < 0 and py > 0 and pz < 0 and pe > 0 and pq < 0 and pn > 0 and pa < 0 and pb > 0)
+                self.assertTrue(px < 0 < py and pz < 0 < pe and pq < 0 < pn and pa < 0 < pb)
         # check for circle, full circle
         dir_changed, _ = self.__check_circular(Coordinates(0, 0, 0, 0, 0, 0, 0, 0),
                                                Coordinates(1.0, 1.0, 0, 0, 0, 0, 0, 0),

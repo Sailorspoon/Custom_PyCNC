@@ -1,4 +1,4 @@
-# Aenderung Christian 28.11.2019
+# Aenderung Christian 29.11.2019
 import unittest
 
 from cnc.gcode import *
@@ -15,7 +15,7 @@ class TestGCode(unittest.TestCase):
         # GCode shouldn't be created with constructor, but since it uses
         # internally, let's checq it.
         self.assertRaises(TypeError, GCode)
-        gc = GCode({"X": "1", "Y": "-2", "Z": "0", "E": 99, "Q": 43, "N": "2", "A": "5", "B":"7", "G": "1"})
+        gc = GCode({"X": "1", "Y": "-2", "Z": "0", "E": 99, "Q": 43, "N": "2", "A": "5", "B": "7", "G": "1"})
         self.assertEqual(gc.coordinates(self.default, 1).x, 1.0)
         self.assertEqual(gc.coordinates(self.default, 1).y, -2.0)
         self.assertEqual(gc.coordinates(self.default, 1).z, 0.0)
@@ -108,7 +108,6 @@ class TestGCode(unittest.TestCase):
         gc = GCode.parse_line("B1")
         self.assertTrue(gc.has_coordinates())
 
-
     def test_radius(self):
         gc = GCode.parse_line("G2I1J2Q3")
         self.assertEqual(gc.radius(self.default, 1).x, 1)
@@ -128,9 +127,8 @@ class TestGCode(unittest.TestCase):
         self.assertEqual(gc.coordinates(self.default, 5).e, 25)
         self.assertEqual(gc.coordinates(self.default, 2).q, 6)
         self.assertEqual(gc.coordinates(self.default, 4).n, 8)
-        self.assertEqual(gc.coordinates(self.default, 4).a, 8)
-        self.assertEqual(gc.coordinates(self.default, 4).b, 8)
-
+        self.assertEqual(gc.coordinates(self.default, 4).a, 12)
+        self.assertEqual(gc.coordinates(self.default, 4).b, 16)
 
     def test_whitespaces(self):
         gc = GCode.parse_line("X1 Y2")
