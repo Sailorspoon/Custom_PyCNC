@@ -353,8 +353,8 @@ class PulseGeneratorLinear(PulseGenerator):
         self._total_pulses_e = round(distance_mm.e * STEPPER_PULSES_PER_MM_E)
         """ Ergaenzung um die Totalpulses in k und n - Richtung (siehe config.py für Kalibrierung und hal_virtual.py und
         gmachine)"""
-        self._total_pulses_q = round(distance_mm.q - STEPPER_PULSES_PER_MM_Q)
-        self._total_pulses_n = round(distance_mm.n - STEPPER_PULSES_PER_MM_N)
+        self._total_pulses_q = round(distance_mm.q * STEPPER_PULSES_PER_MM_Q)
+        self._total_pulses_n = round(distance_mm.n * STEPPER_PULSES_PER_MM_N)
         """ Ergaenzung um die Totalpulses in a und b - Richtung"""
         self._total_pulses_a = round(distance_mm.a * STEPPER_PULSES_PER_MM_A)
         self._total_pulses_b = round(distance_mm.b * STEPPER_PULSES_PER_MM_B)

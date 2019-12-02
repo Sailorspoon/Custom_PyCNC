@@ -20,7 +20,7 @@ class Coordinates(object):
         self.e = round(e, 10)
         self.q = round(q, 10)  # Einfuegen der anderen FHG
         self.n = round(n, 10)  # Einfuegen der anderen FHG
-        self.a = round(a, 15)
+        self.a = round(a, 10)
         self.b = round(b, 10)
 
     def is_zero(self):

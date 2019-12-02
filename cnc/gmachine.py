@@ -206,11 +206,19 @@ class GMachine(object):
         delta = delta.round(1.0 / STEPPER_PULSES_PER_MM_X,
                             1.0 / STEPPER_PULSES_PER_MM_Y,
                             1.0 / STEPPER_PULSES_PER_MM_Z,
-                            1.0 / STEPPER_PULSES_PER_MM_E)
+                            1.0 / STEPPER_PULSES_PER_MM_E,
+                            1.0 / STEPPER_PULSES_PER_MM_Q,
+                            1.0 / STEPPER_PULSES_PER_MM_N,
+                            1.0 / STEPPER_PULSES_PER_MM_A,
+                            1.0 / STEPPER_PULSES_PER_MM_B)
         radius = radius.round(1.0 / STEPPER_PULSES_PER_MM_X,
                               1.0 / STEPPER_PULSES_PER_MM_Y,
                               1.0 / STEPPER_PULSES_PER_MM_Z,
-                              1.0 / STEPPER_PULSES_PER_MM_E)
+                              1.0 / STEPPER_PULSES_PER_MM_E,
+                              1.0 / STEPPER_PULSES_PER_MM_Q,
+                              1.0 / STEPPER_PULSES_PER_MM_N,
+                              1.0 / STEPPER_PULSES_PER_MM_A,
+                              1.0 / STEPPER_PULSES_PER_MM_B)
         self.__check_delta(delta)
         # get delta vector and put it on circle
         circle_end = Coordinates(0, 0, 0, 0, 0, 0, 0, 0)
@@ -236,6 +244,9 @@ class GMachine(object):
                                      TABLE_SIZE_X_MM)
             circle_end.y = delta.y
         circle_end.e = delta.e
+        circle_end.q = delta.q
+        circle_end.a = delta.a
+        circle_end.b = delta.b
         """ Ergaenzung der Funktion fuer Kompatibilitaet"""
         circle_end = circle_end.round(1.0 / STEPPER_PULSES_PER_MM_X,
                                       1.0 / STEPPER_PULSES_PER_MM_Y,

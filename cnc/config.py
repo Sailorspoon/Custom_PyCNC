@@ -8,11 +8,11 @@ MAX_VELOCITY_MM_PER_MIN_Y = 12000
 MAX_VELOCITY_MM_PER_MIN_Z = 600
 MAX_VELOCITY_MM_PER_MIN_E = 1500
 """ Anpassung fuer Druckerkopf"""
-MAX_VELOCITY_MM_PER_MIN_Q = 10000    # Werte muessen spaeter noch angepasst werden
-MAX_VELOCITY_MM_PER_MIN_N = 10000
+MAX_VELOCITY_MM_PER_MIN_Q = 1000    # Werte muessen spaeter noch angepasst werden
+MAX_VELOCITY_MM_PER_MIN_N = 1000
 """ Anpassung fuer Druckerbett"""
-MAX_VELOCITY_MM_PER_MIN_A = 10000
-MAX_VELOCITY_MM_PER_MIN_B = 10000
+MAX_VELOCITY_MM_PER_MIN_A = 1000
+MAX_VELOCITY_MM_PER_MIN_B = 1000
 """ Minimale Geschwindigkeit des Niederhalters kann seperat angegeben werden"""
 MIN_VELOCITY_MM_PER_MIN = 1
 # Average velocity for endstop calibration procedure
@@ -25,7 +25,7 @@ STEPPER_PULSES_PER_MM_Z = 400
 STEPPER_PULSES_PER_MM_E = 150
 """ Anpassung fuer Druckerkopf"""
 STEPPER_PULSES_PER_MM_Q = 200    # Werte muessen spaeter noch angepasst werden
-STEPPER_PULSES_PER_MM_N = 500
+STEPPER_PULSES_PER_MM_N = 200
 """ Anpassung fuer Druckerbett"""
 STEPPER_PULSES_PER_MM_A = 200
 STEPPER_PULSES_PER_MM_B = 300

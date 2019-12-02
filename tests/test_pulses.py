@@ -360,7 +360,7 @@ class TestPulses(unittest.TestCase):
                 self.assertFalse(dir_found)
                 dir_found = True
                 # check dirs
-                self.assertTrue(px > 0 > py and pz > 0 > pe and pq > 0 > pn and pa > 0 > pb)
+                self.assertTrue(px > 0 and py < 0 and pz > 0 and pe < 0 and pq > 0 and pn < 0 and pa > 0 and pb < 0)
         m = Coordinates(-1, 2, -3, 4, -3, 2, -1, 4)
         g = PulseGeneratorLinear(m, self.v)
         dir_found = False
@@ -386,7 +386,7 @@ class TestPulses(unittest.TestCase):
                 self.assertFalse(dir_found)
                 dir_found = True
                 # check dirs
-                self.assertTrue(px < 0 < py and pz < 0 < pe and pq < 0 < pn and pa < 0 < pb)
+                self.assertTrue(px < 0 and py > 0 and pz < 0 and pe > 0 and pq < 0 and pn > 0 and pa < 0 and pb > 0)
         # check for circle, full circle
         dir_changed, _ = self.__check_circular(Coordinates(0, 0, 0, 0, 0, 0, 0, 0),
                                                Coordinates(1.0, 1.0, 0, 0, 0, 0, 0, 0),
