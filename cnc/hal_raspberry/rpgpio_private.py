@@ -10,9 +10,9 @@ import ctypes
 
 # Raspberry Pi registers
 # https://www.raspberrypi.org/wp-content/uploads/2012/02/BCM2835-ARM-Peripherals.pdf (1)
-""" Physical Adress of Peripherals - Achtung, das gilt nur fuer Raspberry Pi 1"""
+# Physical Adress of Peripherals - this is for RPi 1 only
 RPI1_PERI_BASE = 0x20000000
-""" Adresse der Peripherals fuer Pi 2 und/oder 3 """
+# Peripherals address RPi 2 and/or 3 """
 RPI2_3_PERI_BASE = 0x3F000000
 # detect board version
 try:
@@ -25,7 +25,7 @@ try:
                            '0011', '0012', '0013', '0014', '0015', '900021',
                            '900032']
         if h is None:
-            raise ImportError("This is not raspberry pi board.")
+            raise ImportError("This is not a raspberry pi board.")
         elif r.group(1) in RPI_1_REVISIONS:
             PERI_BASE = RPI1_PERI_BASE
         elif "BCM2" in h.group(1):
@@ -34,9 +34,10 @@ try:
             raise ImportError("Unknown board.")
 except IOError:
     raise ImportError("/proc/cpuinfo not found. Not Linux device?")
-# Fuer die folgenden Adressen ist (1) Seite 89 ff. hilfreich
+# For understanding the following lines of code, (1) page 89 ff. are helpful
+# Be aware of the errata list: https://elinux.org/BCM2835_datasheet_errata
 # GPIO has up to 54 I/Os with each at least two different functions
-PAGE_SIZE = 4096    # Festsetzen der pagesize - kann die noch geaendert werden?
+PAGE_SIZE = 4096    # determination of pagesize - see, if can be changed later on
 GPIO_REGISTER_BASE = 0x200000
 GPIO_INPUT_OFFSET = 0x34    # GPLEV0 Input State of all 32 GPIOs
 GPIO_SET_OFFSET = 0x1C    # GPSET0 Output Setting
@@ -68,48 +69,76 @@ DMA_CS = 0x00    # global enable register
 DMA_CONBLK_AD = 0x04    # DMA control block address
 DMA_NEXTCONBK = 0x1C    # Next control block address
 DMA_TI_NO_WIDE_BURSTS = 1 << 26    # 0_TI (DMA Transfer Information) Register AXI bursts
-DMA_TI_SRC_INC = 1 << 8    #
-DMA_TI_DEST_INC = 1 << 4
-DMA_SRC_IGNORE = 1 << 11
-DMA_DEST_IGNORE = 1 << 7
-DMA_TI_TDMODE = 1 << 1
-DMA_TI_WAIT_RESP = 1 << 3
-DMA_TI_SRC_DREQ = 1 << 10
-DMA_TI_DEST_DREQ = 1 << 6
-DMA_CS_RESET = 1 << 31
-DMA_CS_ABORT = 1 << 30
-DMA_CS_DISDEBUG = 1 << 28
-DMA_CS_END = 1 << 1
-DMA_CS_ACTIVE = 1 << 0
-DMA_TI_PER_MAP_PWM = 5
-DMA_TI_PER_MAP_PCM = 2
-DMA_TI_PER_MAP = (lambda x: x << 16)
-DMA_TI_WAITS = (lambda x: x << 21)
-DMA_TI_TXFR_LEN_YLENGTH = (lambda y: (y & 0x3fff) << 16)
-DMA_TI_TXFR_LEN_XLENGTH = (lambda x: x & 0xffff)
-DMA_TI_STRIDE_D_STRIDE = (lambda x: (x & 0xffff) << 16)
-DMA_TI_STRIDE_S_STRIDE = (lambda x: x & 0xffff)
-DMA_CS_PRIORITY = (lambda x: (x & 0xf) << 16)
-DMA_CS_PANIC_PRIORITY = (lambda x: (x & 0xf) << 20)
+DMA_TI_SRC_INC = 1 << 8    # Source transfer width: 1 = Use 128-bit source read width, 0 = Use 32-bit source read width
+DMA_TI_DEST_INC = 1 << 4    # Destination Address Increment
+# The Destination Address Increment is used in conjunction with Destination Transfer Width (address 1 << 5), which is
+# not specified in this list
+DMA_SRC_IGNORE = 1 << 11    # is still part of TI (Transfer Information) 1 = do not perform source reads
+DMA_DEST_IGNORE = 1 << 7    # is also part of TI, 1 = do not perform destination writes
+DMA_TI_TDMODE = 1 << 1    # set mode interpret, 1 = 2D mode, 0 = linear mode
+DMA_TI_WAIT_RESP = 1 << 3    # 1 = wait for AXI write response
+DMA_TI_SRC_DREQ = 1 << 10    # used in conjuction with Peripheral Mapping, 1 = the data request (DREQ) selected by
+# PERMAP (indicates the peripheral number whose reay signal shall be used to control the rate of the transfers)
+# will gate the source reads
+DMA_TI_DEST_DREQ = 1 << 6    # used in conjuction with Peripheral Mapping, 1 = the data request (DREQ) selected by
+# PERMAP will gate the destination writes
+DMA_CS_RESET = 1 << 31    # DMA channel reset
+DMA_CS_ABORT = 1 << 30    # abort the current DMA CB
+DMA_CS_DISDEBUG = 1 << 29    # 1 = DMA will not stop, when debug pause signal is asserted - CHANGED Max 30.11.2019
+# I think DMA_CS_DISDEBUG has been assigned to the wrong address register: 1 << 28 points to WAIT_FOR_OUTSTANDING_WRITES
+# (1) provides on page 48 the following explanation for this:
+# When set to 1, the DMA will keep a tally
+# of the AXI writes going out and the write
+# responses coming in. At the very end of
+# the current DMA transfer it will wait
+# until the last outstanding write response
+# has been received before indicating the
+# transfer is complete. Whilst waiting it
+# will load the next CB address (but will
+# not fetch the CB), clear the active flag (if
+# the next CB address = zero), and it will
+# defer setting the END flag or the INT flag
+# until the last outstanding write response
+# has been received.
+# In this mode, the DMA will pause if it has
+# more than 13 outstanding writes at any
+# one time.
+DMA_CS_END = 1 << 1    # end flag: set, when the current transfer (desc. by CB) is complete 1 = clear
+DMA_CS_ACTIVE = 1 << 0    # DMA enable - pause possible by clearing and resetting
+DMA_TI_PER_MAP_PWM = 5    # the ready signal of peripheral 5 (PWM) shall be used to control the rate of the transfers
+# see page 61 in (1)
+DMA_TI_PER_MAP_PCM = 2    # the ready signal of peripheral 2 (PCM TX) shall be used to control the rate of the transfers
+DMA_TI_PER_MAP = (lambda x: x << 16)    # Peripheral 20:16 bits
+DMA_TI_WAITS = (lambda x: x << 21)    # adds wait cycles - sets number of dummy cycles - bits 25:21
+DMA_TI_TXFR_LEN_YLENGTH = (lambda y: (y & 0x3fff) << 16)    # is part of TXFR_LEN - bits 29:16
+DMA_TI_TXFR_LEN_XLENGTH = (lambda x: x & 0xffff)    # is part of TXFR_LEN - bits 15:0
+DMA_TI_STRIDE_D_STRIDE = (lambda x: (x & 0xffff) << 16)    # Signed (2 s complement) byte increment to apply to
+# the destination address at the end of each row in 2D mode - bits 31:16
+DMA_TI_STRIDE_S_STRIDE = (lambda x: x & 0xffff)    # Signed (2 s complement) byte increment to apply to
+# the source address at the end of each row in 2D mode - bits 15:0
+DMA_CS_PRIORITY = (lambda x: (x & 0xf) << 16)    # sets the AXI bus priority - bits 19:16
+DMA_CS_PANIC_PRIORITY = (lambda x: (x & 0xf) << 20)    # sets the priority (0 is lowest) of panicking AXI bus
+# transactions, value is only used, when the panic bit of the selected peripheral channel is 1 - bits 23:20
 
 # hardware PWM controller registers
 PWM_BASE = 0x0020C000
 PHYSICAL_PWM_BUS = 0x7E000000 + PWM_BASE
-PWM_CTL = 0x00
-PWM_DMAC = 0x08
-PWM_RNG1 = 0x10
-PWM_RNG2 = 0x20
-PWM_FIFO = 0x18
-PWM_CTL_MODE1 = 1 << 1
-PWM_CTL_MODE2 = 1 << 9
-PWM_CTL_PWEN1 = 1 << 0
-PWM_CTL_PWEN2 = 1 << 8
-PWM_CTL_CLRF = 1 << 6
-PWM_CTL_USEF1 = 1 << 5
-PWM_CTL_USEF2 = 1 << 13
-PWM_DMAC_ENAB = 1 << 31
-PWM_DMAC_PANIC = (lambda x: x << 8)
-PWM_DMAC_DREQ = (lambda x: x)
+# see (1) page 141 ff. for explanation
+PWM_CTL = 0x00    # PWM Control Register Address
+PWM_DMAC = 0x08    # PWM DMA Configuration Address
+PWM_RNG1 = 0x10    # PWM Channel 1 Range
+PWM_RNG2 = 0x20    # PWM Channel 2 Range
+PWM_FIFO = 0x18    # PWM FIFO Input
+PWM_CTL_MODE1 = 1 << 1    # 0 = PWM mode, 1 = Serialiser mode for channel 1 (check errata)
+PWM_CTL_MODE2 = 1 << 9    # 0 = PWM mode, 1 = Serialiser mode for channel 2
+PWM_CTL_PWEN1 = 1 << 0    # Enable channel 1 (= 1)
+PWM_CTL_PWEN2 = 1 << 8    # Enable channel 2 (= 1)
+PWM_CTL_CLRF = 1 << 6     # Clear FIFO = 1, 0 = no effect
+PWM_CTL_USEF1 = 1 << 5    # Use FIFO for channel 1 (= 1)
+PWM_CTL_USEF2 = 1 << 13    # Use FIFO for channel 2 (= 2)
+PWM_DMAC_ENAB = 1 << 31    # 1 = Start DMA, 0 = DMA disabled
+PWM_DMAC_PANIC = (lambda x: x << 8)    # threshold for PANIC signal (if above 7 -> active) - bits 15:8
+PWM_DMAC_DREQ = (lambda x: x)    # threshold for DREQ signal (if above 7 -> active) - bits 7:0
 
 # clock manager module
 CM_BASE = 0x00101000
