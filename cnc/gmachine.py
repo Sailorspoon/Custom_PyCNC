@@ -327,7 +327,6 @@ class GMachine(object):
         else:
             delta = gcode.coordinates(Coordinates(0.0, 0.0, 0.0, 0.0),
                                       self._convertCoordinates)
-            # coord = self._position + delta
         velocity = gcode.get('F', self._velocity)
         radius = gcode.radius(Coordinates(0.0, 0.0, 0.0, 0.0),
                               self._convertCoordinates)

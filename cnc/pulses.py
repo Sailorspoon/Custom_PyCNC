@@ -332,15 +332,7 @@ class PulseGeneratorLinear(PulseGenerator):
                                                                 * distance_pivot_tool_mm / 2 - tu['y'])
                                                       ** 2 + length_arm['c'] ** 2))
 
-        print(velocity_carriage_mm_per_min)
         distance_total_mm = distance_mm.length()
-        # self.max_velocity_mm_per_sec = Coordinates(0, 0, 0, 0)
-        # self.max_velocity_mm_per_sec.x = distance_mm.x * (
-        #         velocity_carriage_mm_per_min.x / SECONDS_IN_MINUTE / distance_total_mm)
-        # self.max_velocity_mm_per_sec.y = distance_mm.y * (
-        #         velocity_carriage_mm_per_min.y / SECONDS_IN_MINUTE / distance_total_mm)
-        # self.max_velocity_mm_per_sec.z = distance_mm.z * (
-        #         velocity_carriage_mm_per_min.z / SECONDS_IN_MINUTE / distance_total_mm)
 
         self.max_velocity_mm_per_sec = self._adjust_velocity(abs(velocity_carriage_mm_per_min) / SECONDS_IN_MINUTE)
 
