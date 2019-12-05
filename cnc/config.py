@@ -3,9 +3,9 @@
 
 import math
 
-# neue Parameter fuer Delta-Logik
+# new parameter for delta-Logic
 distance_pivot_carriage_mm = {'a': 0, 'b': 0, 'c': 0}
-radius_heatbed = 263  # Abstand Mittelpunkt und Carriageschlitten auf xy-Ebene
+radius_heatbed = 263  # distance middle heatbed to carriage on xy-level
 height_pivot_tool_mm = 22
 height_carriage_mm = {'a': 0, 'b': 0, 'c': 0}
 length_arm = {'a': 400, 'b': 400, 'c': 400}
@@ -13,7 +13,11 @@ distance_pivot_tool_mm = 40
 tu = {'x': 0, 'y': 0, 'z': 0}
 
 
-# Startwerte der carriage high (tx, ty, tz = 0)
+# start values of the carriage high:
+# height_carriage_mm is a function of distance_pivot_carriage_mm
+# height carriage calculated with pythagoras of distance_pivot_carriage and the arm lenght. This is added to the height.
+# distance_pivot_carriage calculated with tx, ty, tz = 0
+# x-axes and carriage(a) are in alignment.
 distance_pivot_carriage_mm['a'] = math.sqrt((radius_heatbed - (0 + distance_pivot_tool_mm)) ** 2 + (0 - 0) ** 2)
 height_carriage_mm['a'] = 0 + height_pivot_tool_mm + math.sqrt(length_arm['a'] ** 2
                                                                - distance_pivot_carriage_mm['a'] ** 2)

@@ -257,19 +257,22 @@ class PulseGeneratorLinear(PulseGenerator):
         super(PulseGeneratorLinear, self).__init__(delta_mm)
         distance_mm = abs(delta_mm)  # type: Coordinates
 
-        # Berechnung der Carriage Hoehen abhaengig von der aktuellen Tool Position
-        # Zwischenspeicherung der aktuellen Carriage Hoehe
+        # saving the old carriage_height
         height_carriage_mm_old['a'] = height_carriage_mm['a']
         height_carriage_mm_old['b'] = height_carriage_mm['b']
         height_carriage_mm_old['c'] = height_carriage_mm['c']
 
-        # Berechnung der Zielposition des Tools durch Additition von aktueller Position und Verfahrweg (delta)
+        # tu is the position of the Tool, independently of time and completed steps.
+        # addition of the position differences (delta)
         tu['x'] += delta_mm.x
         tu['y'] += delta_mm.y
         tu['z'] += delta_mm.z
 
-        # Berechnung der auf x,y Ebene projezierten Distanz zwischen Pivot und Carriage,
-        # Berechnung der Carriage Hoehe
+        # height_carriage_mm is a function of distance_pivot_carriage_mm
+        # height carriage_mm calculated with pythagoras of distance_pivot_carriage (calculated wit tx, ty, tz)
+        #       and the arm lenght. This is added to the height.
+        # x-axes and carriage(a) are in alignment. Carriage(b) in 120° to x-axis. carriage(c) in 240° to x-axis.
+        # same formular as "start values of the carriage high" in config.py but tx, ty, tz not 0
         height_carriage_mm['a'] = tu['z'] + height_pivot_tool_mm \
                                   + math.sqrt(length_arm['a'] ** 2
                                               - ((radius_heatbed - (tu['x'] + distance_pivot_tool_mm)) ** 2
@@ -289,12 +292,12 @@ class PulseGeneratorLinear(PulseGenerator):
                                                                          - (tu['y'] + distance_pivot_tool_mm *
                                                                             math.sin(math.radians(240)))) ** 2))
 
-        # zu fahrende Hoehe des Carriage
+        # driving distance is new position - old position of the carriage
         distance_mm.x = height_carriage_mm['a'] - height_carriage_mm_old['a']
         distance_mm.y = height_carriage_mm['b'] - height_carriage_mm_old['b']
         distance_mm.z = height_carriage_mm['c'] - height_carriage_mm_old['c']
 
-        # velocity of each axis
+        # velocity of each axis, calculated with pythagoras
         velocity_carriage_mm_per_min = Coordinates(0, 0, 0, 0)
         velocity_mm_per_min_axis = Coordinates(0, 0, 0, 0)
         velocity_mm_per_min_axis.x = velocity_mm_per_min * \
@@ -304,7 +307,7 @@ class PulseGeneratorLinear(PulseGenerator):
         velocity_mm_per_min_axis.z = velocity_mm_per_min * \
                                      (delta_mm.z / math.sqrt(delta_mm.x ** 2 + delta_mm.y ** 2 + delta_mm.z ** 2))
 
-        # Geschwindigkeit der carriages bestimmt aus Ableitungen der Carriagebewegung
+        # velocity of the carriages from derivation of Carriage movement ( d/dt height_carriage_mm)
         velocity_carriage_mm_per_min.x = (velocity_mm_per_min_axis.x * (
                 radius_heatbed - distance_pivot_tool_mm - tu['x']) -
                                           tu['y'] * velocity_mm_per_min_axis.y) / \
@@ -332,15 +335,7 @@ class PulseGeneratorLinear(PulseGenerator):
                                                                 * distance_pivot_tool_mm / 2 - tu['y'])
                                                       ** 2 + length_arm['c'] ** 2))
 
-        print(velocity_carriage_mm_per_min)
         distance_total_mm = distance_mm.length()
-        # self.max_velocity_mm_per_sec = Coordinates(0, 0, 0, 0)
-        # self.max_velocity_mm_per_sec.x = distance_mm.x * (
-        #         velocity_carriage_mm_per_min.x / SECONDS_IN_MINUTE / distance_total_mm)
-        # self.max_velocity_mm_per_sec.y = distance_mm.y * (
-        #         velocity_carriage_mm_per_min.y / SECONDS_IN_MINUTE / distance_total_mm)
-        # self.max_velocity_mm_per_sec.z = distance_mm.z * (
-        #         velocity_carriage_mm_per_min.z / SECONDS_IN_MINUTE / distance_total_mm)
 
         self.max_velocity_mm_per_sec = self._adjust_velocity(abs(velocity_carriage_mm_per_min) / SECONDS_IN_MINUTE)
 
