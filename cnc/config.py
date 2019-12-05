@@ -18,21 +18,18 @@ tu = {'x': 0, 'y': 0, 'z': 0}
 # height carriage calculated with pythagoras of distance_pivot_carriage and the arm lenght. This is added to the height.
 # distance_pivot_carriage calculated with tx, ty, tz = 0
 # x-axes and carriage(a) are in alignment.
-distance_pivot_carriage_mm['a'] = math.sqrt((radius_heatbed - (0 + distance_pivot_tool_mm)) ** 2 + (0 - 0) ** 2)
-height_carriage_mm['a'] = 0 + height_pivot_tool_mm + math.sqrt(length_arm['a'] ** 2
-                                                               - distance_pivot_carriage_mm['a'] ** 2)
+distance_pivot_carriage_mm['a'] = math.sqrt((radius_heatbed - distance_pivot_tool_mm) ** 2)
+height_carriage_mm['a'] = height_pivot_tool_mm + math.sqrt(length_arm['a'] ** 2 - distance_pivot_carriage_mm['a'] ** 2)
 distance_pivot_carriage_mm['b'] = math.sqrt((radius_heatbed * math.cos(math.radians(120))
                                              - (0 + distance_pivot_tool_mm * math.cos(math.radians(120)))) ** 2
                                             + (radius_heatbed * math.sin(math.radians(120)) -
                                                (0 + distance_pivot_tool_mm * math.sin(math.radians(120)))) ** 2)
-height_carriage_mm['b'] = 0 + height_pivot_tool_mm + math.sqrt(length_arm['b'] ** 2
-                                                               - distance_pivot_carriage_mm['b'] ** 2)
+height_carriage_mm['b'] = height_pivot_tool_mm + math.sqrt(length_arm['b'] ** 2 - distance_pivot_carriage_mm['b'] ** 2)
 distance_pivot_carriage_mm['c'] = math.sqrt((radius_heatbed * math.cos(math.radians(240))
                                              - (0 + distance_pivot_tool_mm * math.cos(math.radians(240)))) ** 2
                                             + (radius_heatbed * math.sin(math.radians(240))
                                                - (0 + distance_pivot_tool_mm * math.sin(math.radians(240)))) ** 2)
-height_carriage_mm['c'] = 0 + height_pivot_tool_mm + math.sqrt(length_arm['c'] ** 2
-                                                               - distance_pivot_carriage_mm['c'] ** 2)
+height_carriage_mm['c'] = height_pivot_tool_mm + math.sqrt(length_arm['c'] ** 2 - distance_pivot_carriage_mm['c'] ** 2)
 
 distance_mm = dict()
 height_carriage_mm_old = dict()
