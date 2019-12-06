@@ -378,7 +378,9 @@ class GMachine(object):
             vl = max(MAX_VELOCITY_MM_PER_MIN_X,
                      MAX_VELOCITY_MM_PER_MIN_Y,
                      MAX_VELOCITY_MM_PER_MIN_Z,
-                     MAX_VELOCITY_MM_PER_MIN_E)  # hier keine Ergaenzung der anderen Motoren, da nicht notwendig
+                     MAX_VELOCITY_MM_PER_MIN_E,
+                     MAX_VELOCITY_MM_PER_MIN_Q,
+                     MAX_VELOCITY_MM_PER_MIN_N)  # hier keine Ergaenzung der anderen Motoren, da nicht notwendig
             length_delta = delta.length()
             if length_delta > 0:  # hier alle Achsen miteinbeziehen
                 proportion = abs(delta) / length_delta
@@ -398,21 +400,12 @@ class GMachine(object):
                     v = int(MAX_VELOCITY_MM_PER_MIN_E / proportion.e)
                     if v < vl:
                         vl = v
-                        """ Ergaenzung der anderen Achsen (spaeter pruefen ob noetig)"""
                 if proportion.q > 0:
                     v = int(MAX_VELOCITY_MM_PER_MIN_Q / proportion.q)
                     if v < vl:
                         vl = v
                 if proportion.n > 0:
                     v = int(MAX_VELOCITY_MM_PER_MIN_N / proportion.n)
-                    if v < vl:
-                        """ Ergaenzung der Druckbett FHGe"""
-                if proportion.a > 0:
-                    v = int(MAX_VELOCITY_MM_PER_MIN_A / proportion.a)
-                    if v < vl:
-                        vl = v
-                if proportion.b > 0:
-                    v = int(MAX_VELOCITY_MM_PER_MIN_B / proportion.b)
                     if v < vl:
                         vl = v
             self._move_linear(delta, vl)
