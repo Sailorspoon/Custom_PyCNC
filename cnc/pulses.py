@@ -6,6 +6,7 @@ import logging
 from cnc.config import *
 from cnc.coordinates import *
 from cnc.enums import *
+from cnc.gcode import *
 
 SECONDS_IN_MINUTE = 60.0
 
@@ -156,7 +157,7 @@ class PulseGenerator(object):
         :param pt_s: pseudo time of uniform movement.
         :return: time for each axis or None if movement for axis is finished.
         """
-        # acceleration
+        # calculate acceleration
         # S = Tpseudo * Vmax = a * t^2 / 2
         t = math.sqrt(pt_s * self._2Vmax_per_a)
         if t <= self._acceleration_time_s:
@@ -321,10 +322,91 @@ class PulseGeneratorLinear(PulseGenerator):
         """
         super(PulseGeneratorLinear, self).__init__(delta_mm)
         distance_mm = abs(delta_mm)  # type: Coordinates
-        # velocity of each axis
+
+        # saving the old carriage_height
+        height_carriage_mm_old['a'] = height_carriage_mm['a']
+        height_carriage_mm_old['b'] = height_carriage_mm['b']
+        height_carriage_mm_old['c'] = height_carriage_mm['c']
+
+        # tu is the position of the Tool, independently of time and completed steps.
+        # addition of the position differences (delta)
+        tu['x'] += delta_mm.x
+        tu['y'] += delta_mm.y
+        tu['z'] += delta_mm.z
+
+        # height_carriage_mm is a function of distance_pivot_carriage_mm
+        # height carriage_mm calculated with pythagoras of distance_pivot_carriage (calculated wit tx, ty, tz)
+        #       and the arm lenght. This is added to the height.
+        # x-axes and carriage(a) are in alignment. Carriage(b) in 120° to x-axis. carriage(c) in 240° to x-axis.
+        # same formular as "start values of the carriage high" in config.py but tx, ty, tz not 0
+        height_carriage_mm['a'] = tu['z'] + height_pivot_tool_mm \
+                                  + math.sqrt(length_arm['a'] ** 2
+                                              - ((radius_heatbed - (tu['x'] + distance_pivot_tool_mm)) ** 2
+                                                 + (0 - tu['y']) ** 2))
+        height_carriage_mm['b'] = tu['z'] + height_pivot_tool_mm \
+                                  + math.sqrt(length_arm['b'] ** 2 - ((radius_heatbed * math.cos(math.radians(120))
+                                                                       - (tu['x'] + distance_pivot_tool_mm *
+                                                                          math.cos(math.radians(120)))) ** 2
+                                                                      + (radius_heatbed * math.sin(math.radians(120))
+                                                                         - (tu['y'] + distance_pivot_tool_mm
+                                                                            * math.sin(math.radians(120)))) ** 2))
+        height_carriage_mm['c'] = tu['z'] + height_pivot_tool_mm \
+                                  + math.sqrt(length_arm['c'] ** 2 - ((radius_heatbed * math.cos(math.radians(240))
+                                                                       - (tu['x'] + distance_pivot_tool_mm *
+                                                                          math.cos(math.radians(240)))) ** 2
+                                                                      + (radius_heatbed * math.sin(math.radians(240))
+                                                                         - (tu['y'] + distance_pivot_tool_mm *
+                                                                            math.sin(math.radians(240)))) ** 2))
+
+        # driving distance is new position - old position of the carriage
+        distance_mm.x = height_carriage_mm['a'] - height_carriage_mm_old['a']
+        distance_mm.y = height_carriage_mm['b'] - height_carriage_mm_old['b']
+        distance_mm.z = height_carriage_mm['c'] - height_carriage_mm_old['c']
+
+        # velocity of each axis, calculated with pythagoras
+        velocity_carriage_mm_per_min = Coordinates(0, 0, 0, 0)
+        velocity_mm_per_min_axis = Coordinates(0, 0, 0, 0)
+        velocity_mm_per_min_axis.x = velocity_mm_per_min * \
+                                     (delta_mm.x / math.sqrt(delta_mm.x ** 2 + delta_mm.y ** 2 + delta_mm.z ** 2))
+        velocity_mm_per_min_axis.y = velocity_mm_per_min * \
+                                     (delta_mm.y / math.sqrt(delta_mm.x ** 2 + delta_mm.y ** 2 + delta_mm.z ** 2))
+        velocity_mm_per_min_axis.z = velocity_mm_per_min * \
+                                     (delta_mm.z / math.sqrt(delta_mm.x ** 2 + delta_mm.y ** 2 + delta_mm.z ** 2))
+
+        # velocity of the carriages from derivation of Carriage movement ( d/dt height_carriage_mm)
+        velocity_carriage_mm_per_min.x = (velocity_mm_per_min_axis.x * (
+                radius_heatbed - distance_pivot_tool_mm - tu['x']) -
+                                          tu['y'] * velocity_mm_per_min_axis.y) / \
+                                         (math.sqrt(- (radius_heatbed - distance_pivot_tool_mm - tu['x']) ** 2 +
+                                                    (length_arm['a']) ** 2 - (
+                                                        tu['y']) ** 2)) + velocity_mm_per_min_axis.z
+        velocity_carriage_mm_per_min.y = velocity_mm_per_min_axis.z + \
+                                         (velocity_mm_per_min_axis.x *
+                                          (- radius_heatbed / 2 + distance_pivot_tool_mm / 2 - tu['x']) +
+                                          velocity_mm_per_min_axis.y * (math.sqrt(3) * radius_heatbed / 2 -
+                                                                        (math.sqrt(3) * distance_pivot_tool_mm) / 2
+                                                                        - tu['y'])) \
+                                         / (math.sqrt(- (- radius_heatbed / 2 + distance_pivot_tool_mm / 2 - tu['x'])
+                                                        ** 2 - (math.sqrt(3) * radius_heatbed / 2 - math.sqrt(3)
+                                                                * distance_pivot_tool_mm / 2 - tu['y'])
+                                                      ** 2 + length_arm['b'] ** 2))
+        velocity_carriage_mm_per_min.z = velocity_mm_per_min_axis.z + \
+                                         (velocity_mm_per_min_axis.x *
+                                          (- radius_heatbed / 2 + distance_pivot_tool_mm / 2 - tu['x']) +
+                                          velocity_mm_per_min_axis.y * (-math.sqrt(3) * radius_heatbed / 2 +
+                                                                        (math.sqrt(3) * distance_pivot_tool_mm) / 2
+                                                                        - tu['y'])) \
+                                         / (math.sqrt(- (- radius_heatbed / 2 + distance_pivot_tool_mm / 2 - tu['x'])
+                                                        ** 2 - (-math.sqrt(3) * radius_heatbed / 2 + math.sqrt(3)
+                                                                * distance_pivot_tool_mm / 2 - tu['y'])
+                                                      ** 2 + length_arm['c'] ** 2))
+
         distance_total_mm = distance_mm.length()
-        self.max_velocity_mm_per_sec = self._adjust_velocity(distance_mm * (
-                velocity_mm_per_min / SECONDS_IN_MINUTE / distance_total_mm))
+
+        self.max_velocity_mm_per_sec = self._adjust_velocity(abs(velocity_carriage_mm_per_min) / SECONDS_IN_MINUTE)
+        # from other script - has to be used for other axis
+        # self.max_velocity_mm_per_sec = self._adjust_velocity(distance_mm * (
+        #         velocity_mm_per_min / SECONDS_IN_MINUTE / distance_total_mm))
         # acceleration time
         self.acceleration_time_s = (self.max_velocity_mm_per_sec.find_max()
                                     / STEPPER_MAX_ACCELERATION_MM_PER_S2)
@@ -347,10 +429,12 @@ class PulseGeneratorLinear(PulseGenerator):
                                  * STEPPER_MAX_ACCELERATION_MM_PER_S2
             self.linear_time_s = (linear_distance_mm
                                   / self.max_velocity_mm_per_sec.length())
-        self._total_pulses_x = round(distance_mm.x * STEPPER_PULSES_PER_MM_X)
-        self._total_pulses_y = round(distance_mm.y * STEPPER_PULSES_PER_MM_Y)
-        self._total_pulses_z = round(distance_mm.z * STEPPER_PULSES_PER_MM_Z)
-        self._total_pulses_e = round(distance_mm.e * STEPPER_PULSES_PER_MM_E)
+        # Abs of total Pulses
+        # get direction from distance_mm
+        self._total_pulses_x = round(abs(distance_mm.x * STEPPER_PULSES_PER_MM_X))
+        self._total_pulses_y = round(abs(distance_mm.y * STEPPER_PULSES_PER_MM_Y))
+        self._total_pulses_z = round(abs(distance_mm.z * STEPPER_PULSES_PER_MM_Z))
+        self._total_pulses_e = round(abs(distance_mm.e * STEPPER_PULSES_PER_MM_E))
         """ Ergaenzung um die Totalpulses in k und n - Richtung (siehe config.py für Kalibrierung und hal_virtual.py und
         gmachine)"""
         self._total_pulses_q = round(distance_mm.q * STEPPER_PULSES_PER_MM_Q)
@@ -358,9 +442,9 @@ class PulseGeneratorLinear(PulseGenerator):
         """ Ergaenzung um die Totalpulses in a und b - Richtung"""
         self._total_pulses_a = round(distance_mm.a * STEPPER_PULSES_PER_MM_A)
         self._total_pulses_b = round(distance_mm.b * STEPPER_PULSES_PER_MM_B)
-        self._direction = (math.copysign(1, delta_mm.x),
-                           math.copysign(1, delta_mm.y),
-                           math.copysign(1, delta_mm.z),
+        self._direction = (math.copysign(1, distance_mm.x),
+                           math.copysign(1, distance_mm.y),
+                           math.copysign(1, distance_mm.z),
                            math.copysign(1, delta_mm.e),
                            math.copysign(1, delta_mm.q),
                            math.copysign(1, delta_mm.n),

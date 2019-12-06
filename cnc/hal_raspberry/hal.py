@@ -333,18 +333,17 @@ def move(generator):
         # matter for pulses with 1-2us length.
         prev = k00 + STEPPER_PULSE_LENGTH_US
         # instant run handling
-        if not is_ran and instant and current_cb is None:
-            if k00 - k0 > 100000:  # wait at least 100 ms is uploaded
-                nt = time.time() - st
-                ng = (k00 - k0) / 1000000.0
-                if nt > ng:
-                    logging.warn("Buffer preparing for instant run took more "
-                                 "time then buffer time"
-                                 " {}/{}".format(nt, ng))
-                    instant = False
-                else:
-                    dma.run_stream()
-                    is_ran = True
+        if not is_ran and instant and current_cb is None  and k00 - k0 > 100000:     # wait at least 100 ms is uploaded
+            nt = time.time() - st
+            ng = (k00 - k0) / 1000000.0
+            if nt > ng:
+                logging.warn("Buffer preparing for instant run took more "
+                             "time then buffer time"
+                             " {}/{}".format(nt, ng))
+                instant = False
+            else:
+                dma.run_stream()
+                is_ran = True
     pt = time.time()
     if not is_ran:
         # after long command, we can fill short buffer, that why we may need to

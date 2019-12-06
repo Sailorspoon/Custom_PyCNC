@@ -2,13 +2,14 @@
 from __future__ import division
 
 import cnc.logging_config as logging_config
-# from cnc import hal
+from cnc import hal
 from cnc.pulses import *
 from cnc.coordinates import *
 from cnc.heater import *
 from cnc.enums import *
 from cnc.watchdog import *
 
+coord = None
 
 class GMachineException(Exception):
     """ Exceptions while processing gcode line.
@@ -108,6 +109,9 @@ class GMachine(object):
         if not pos.is_in_aabb(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
                               Coordinates(TABLE_SIZE_X_MM, TABLE_SIZE_Y_MM,  # hier nur 3D Achsen relevant
                                           TABLE_SIZE_Z_MM, 0, 0, MAX_ROTATION_N_MM, MAX_TILT_ANGLE, 0)):
+            raise GMachineException("out of effective area")
+            # Check if Coordinates are within circular Table
+        if pos.x ** 2 + pos.y ** 2 > TABLE_SIZE_RADIUS_MM ** 2:
             raise GMachineException("out of effective area")
 
     # noinspection PyMethodMayBeStatic
@@ -355,14 +359,14 @@ class GMachine(object):
             c = 'G1'
         # read parameters
         if self._absoluteCoordinates:
-            coord = gcode.coordinates(self._position - self._local,
+            global coord
+            coord = gcode.coordinates(self._position - self._local,  # wo Druckkopf hin soll
                                       self._convertCoordinates)
             coord = coord + self._local
             delta = coord - self._position
         else:
             delta = gcode.coordinates(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
                                       self._convertCoordinates)
-            # coord = self._position + delta
         velocity = gcode.get('F', self._velocity)
         radius = gcode.radius(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
                               self._convertCoordinates)
