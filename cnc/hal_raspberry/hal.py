@@ -12,16 +12,16 @@ gpio = rpgpio.GPIO()
 dma = rpgpio.DMAGPIO()
 pwm = rpgpio.DMAPWM()
 watchdog = rpgpio.DMAWatchdog()
-"""x << y Returns x with the bits shifted to the left by y places (and new bits on the right-hand-side are zeros). 
-This is the same as multiplying x by 2**y"""
+
+# x << y Returns x with the bits shifted to the left by y places (and new bits on the right-hand-side are zeros).
+# this is the same as multiplying x by 2**y
+
 STEP_PIN_MASK_X = 1 << STEPPER_STEP_PIN_X
 STEP_PIN_MASK_Y = 1 << STEPPER_STEP_PIN_Y
 STEP_PIN_MASK_Z = 1 << STEPPER_STEP_PIN_Z
 STEP_PIN_MASK_E = 1 << STEPPER_STEP_PIN_E
-""" Ergaenzung um die PIN_MASKS des Druckerbetts"""
 STEP_PIN_MASK_Q = 1 << STEPPER_STEP_PIN_Q
 STEP_PIN_MASK_N = 1 << STEPPER_STEP_PIN_N
-""" Ergaenzung um die PIN_MASKS des Druckerbetts"""
 STEP_PIN_MASK_A = 1 << STEPPER_STEP_PIN_A
 STEP_PIN_MASK_B = 1 << STEPPER_STEP_PIN_B
 
@@ -33,10 +33,8 @@ def init():
     gpio.init(STEPPER_STEP_PIN_Y, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_STEP_PIN_Z, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_STEP_PIN_E, rpgpio.GPIO.MODE_OUTPUT)
-    """ Angaben fuer Druckerkopf"""
     gpio.init(STEPPER_STEP_PIN_Q, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_STEP_PIN_N, rpgpio.GPIO.MODE_OUTPUT)
-    """ Angaben fuer Druckerbett"""
     gpio.init(STEPPER_STEP_PIN_A, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_STEP_PIN_B, rpgpio.GPIO.MODE_OUTPUT)
 
@@ -44,10 +42,8 @@ def init():
     gpio.init(STEPPER_DIR_PIN_Y, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_DIR_PIN_Z, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_DIR_PIN_E, rpgpio.GPIO.MODE_OUTPUT)
-    """ Angaben fuer Druckerkopf"""
     gpio.init(STEPPER_DIR_PIN_Q, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_DIR_PIN_N, rpgpio.GPIO.MODE_OUTPUT)
-    """ Angaben fuer Druckerbett"""
     gpio.init(STEPPER_DIR_PIN_A, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_DIR_PIN_B, rpgpio.GPIO.MODE_OUTPUT)
 

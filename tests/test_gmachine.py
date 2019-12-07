@@ -31,7 +31,7 @@ class TestGMachine(unittest.TestCase):
         m = GMachine()
         m.do_command(GCode.parse_line("X1Y2Z3E4Q4N5A6B7"))
         m.safe_zero()    # In safe_zero (in gmachine.py) die anderen safe daten eingeben
-        self.assertEqual(m.position(), Coordinates(0, 0, 0, 4, 4, 0, 0, 0))
+        self.assertEqual(m.position(), Coordinates(0, 0, TABLE_SIZE_Z_MM, 4, 4, 0, 0, 0))
 
     def test_none(self):
         # GMachine must ignore None commands, since GCode.parse_line()

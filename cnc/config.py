@@ -39,13 +39,10 @@ MAX_VELOCITY_MM_PER_MIN_X = 24000
 MAX_VELOCITY_MM_PER_MIN_Y = 24000
 MAX_VELOCITY_MM_PER_MIN_Z = 24000
 MAX_VELOCITY_MM_PER_MIN_E = 1500
-""" Anpassung fuer Druckerkopf"""
-MAX_VELOCITY_MM_PER_MIN_Q = 1000   # Werte muessen spaeter noch angepasst werden
+MAX_VELOCITY_MM_PER_MIN_Q = 1000
 MAX_VELOCITY_MM_PER_MIN_N = 10000
-""" Anpassung fuer Druckerbett"""
 MAX_VELOCITY_MM_PER_MIN_A = 10000
 MAX_VELOCITY_MM_PER_MIN_B = 10000
-""" Minimale Geschwindigkeit des Niederhalters kann seperat angegeben werden"""
 MIN_VELOCITY_MM_PER_MIN = 1
 # Average velocity for endstop calibration procedure
 CALIBRATION_VELOCITY_MM_PER_MIN = 300
@@ -55,10 +52,8 @@ STEPPER_PULSES_PER_MM_X = 100
 STEPPER_PULSES_PER_MM_Y = 100
 STEPPER_PULSES_PER_MM_Z = 100
 STEPPER_PULSES_PER_MM_E = 150
-""" Anpassung fuer Druckerkopf"""
-STEPPER_PULSES_PER_MM_Q = 150    # Werte muessen spaeter noch angepasst werden
+STEPPER_PULSES_PER_MM_Q = 150
 STEPPER_PULSES_PER_MM_N = 200
-""" Anpassung fuer Druckerbett"""
 STEPPER_PULSES_PER_MM_A = 100
 STEPPER_PULSES_PER_MM_B = 100
 
@@ -68,10 +63,8 @@ STEPPER_INVERTED_X = False
 STEPPER_INVERTED_Y = False
 STEPPER_INVERTED_Z = False
 STEPPER_INVERTED_E = True
-""" Anpassung fuer Druckerkopf"""
-STEPPER_INVERTED_Q = False    # Ergaenzt um die weiteren FHGe
+STEPPER_INVERTED_Q = False
 STEPPER_INVERTED_N = False
-""" Anpassung fuer Druckerbett"""
 STEPPER_INVERTED_A = False
 STEPPER_INVERTED_B = False
 
@@ -87,17 +80,14 @@ TABLE_SIZE_X_MM = 100
 TABLE_SIZE_Y_MM = 100
 TABLE_SIZE_Z_MM = 455
 TABLE_SIZE_RADIUS_MM = 180
-""" Maximaler Drehradius -> Anpassung in Matlab erforderlich"""
-foo = 360
-MAX_ROTATION_N_MM = foo     # dieser Wert wird spaeter fuer die Einhaltung des Schwenkradiuses verwendet
-""" Maximaler Kippwinkel -> Anpassung spaeter erforderlich"""
-foo2 = 100
-MAX_TILT_ANGLE = foo2
+MAX_ROTATION_N_MM = 360
+MAX_TILT_ANGLE = 100
+# no maximum for rotatory degree of freedom of the heating bed
 
 # Mixed settings.
 STEPPER_PULSE_LENGTH_US = 2
 STEPPER_MAX_ACCELERATION_MM_PER_S2 = 3000  # for all axis, mm per sec^2
-SPINDLE_MAX_RPM = 10000
+SPINDLE_MAX_RPM = 10000    # value can be ignored - can be deleted, if corresponding function is deleted
 EXTRUDER_MAX_TEMPERATURE = 250
 BED_MAX_TEMPERATURE = 100
 MIN_TEMPERATURE = 40
@@ -117,10 +107,9 @@ STEPPER_STEP_PIN_X = 21
 STEPPER_STEP_PIN_Y = 16
 STEPPER_STEP_PIN_Z = 12
 STEPPER_STEP_PIN_E = 8
-""" Pinumbelegung erforderlich"""
+# new degrees of freedom
 STEPPER_STEP_PIN_Q = 8
 STEPPER_STEP_PIN_N = 8
-""" Pinumbelegung erforderlich"""
 STEPPER_STEP_PIN_A = 8
 STEPPER_STEP_PIN_B = 8
 
@@ -128,21 +117,19 @@ STEPPER_DIR_PIN_X = 20
 STEPPER_DIR_PIN_Y = 19
 STEPPER_DIR_PIN_Z = 13
 STEPPER_DIR_PIN_E = 7
-""" Pinumbelegung erforderlich"""
+# new degrees of freedom
 STEPPER_DIR_PIN_Q = 7
 STEPPER_DIR_PIN_N = 7
-""" Pinumbelegung erforderlich"""
 STEPPER_DIR_PIN_A = 7
 STEPPER_DIR_PIN_B = 7
 
-SPINDLE_PWM_PIN = 4    # kann spaeter freigegeben werden
+SPINDLE_PWM_PIN = 4    # can be freed later
 FAN_PIN = 27
 EXTRUDER_HEATER_PIN = 18
 BED_HEATER_PIN = 22
 EXTRUDER_TEMPERATURE_SENSOR_CHANNEL = 2
 BED_TEMPERATURE_SENSOR_CHANNEL = 1
 
-""" Diese drei werden spaeter frei gegeben"""
 ENDSTOP_PIN_X = 23
 ENDSTOP_PIN_Y = 10
 ENDSTOP_PIN_Z = 25
