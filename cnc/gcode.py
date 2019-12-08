@@ -45,21 +45,25 @@ class GCode(object):
         return float(self.params[arg_name]) * multiply
 
     def coordinates(self, default, multiply):
-        """ Get X, Y and Z values as Coord object.
+        """ Get X, Y, Z, E, Q, N, A and B as coordinate object.
         :param default: Default values, if any of coordinates is not specified.
         :param multiply: If value exist, multiply it by this value.
         :return: Coord object.
+        E: FFF extruder
+        Q: koFi extruder
+        A: Tilting heating bed
+        B: rotation of heating bed
         """
         x = self.get('X', default.x, multiply)
         y = self.get('Y', default.y, multiply)
         z = self.get('Z', default.z, multiply)
         e = self.get('E', default.e, multiply)
-        q = self.get('Q', default.q, multiply)    # koFi Extruder als neuer Befehl
-        n = self.get('N', default.n, multiply)    # Niederhalter als neuer Befehl
-        a = self.get('A', default.a, multiply)    # Kippbewegung als neuer Befehl
-        b = self.get('B', default.b, multiply)  # Rotationsbewegung als neuer Befehl
+        q = self.get('Q', default.q, multiply)
+        n = self.get('N', default.n, multiply)
+        a = self.get('A', default.a, multiply)
+        b = self.get('B', default.b, multiply)
 
-        return Coordinates(x, y, z, e, q, n, a, b)    # coordinates muss mit input angepasst werden
+        return Coordinates(x, y, z, e, q, n, a, b)
 
     def has_coordinates(self):
         """ Check if at least one of the coordinates is present.
@@ -67,19 +71,19 @@ class GCode(object):
         """
         return 'X' in self.params or 'Y' in self.params or 'Z' in self.params \
                or 'E' in self.params or 'Q' in self.params or 'N' in self.params \
-            or 'A' in self.params or 'B' in self.params    # neue Freiheitsgrade hinzugefuegt
+            or 'A' in self.params or 'B' in self.params
 
     def radius(self, default, multiply):
         """ Get radius for circular interpolation(I, J, K or R).
         :param default: Default values, if any of coords is not specified.
         :param multiply: If value exist, multiply it by this value.
         :return: Coord object.
+        This function is currently not in use
         """
         i = self.get('I', default.x, multiply)
         j = self.get('J', default.y, multiply)
-        q = self.get('Q', default.z, multiply)
-        return Coordinates(i, j, q, 0, 0, 0, 0, 0)
-        # Anpassen der inputs wegen zusaetzlicher Freiheitsgrade (siehe Zeile 59)
+        k = self.get('K', default.z, multiply)
+        return Coordinates(i, j, k, 0, 0, 0, 0, 0)
 
     def command(self):
         """ Get value from gcode line.
@@ -101,7 +105,7 @@ class GCode(object):
         line = re.sub(clean_pattern, '', line)
         if len(line) == 0:
             return None
-        if line[0] == '%':    # % steht in manchen G-Code flavorn fuer Startbefehl -> nicht notwendig, daher ignorieren
+        if line[0] == '%':    # in some g-code flavors '%' is an starting indicator
             return None
         m = g_pattern.findall(line)
         if not m:
@@ -114,7 +118,7 @@ class GCode(object):
             raise GCodeException('duplicated gcode entries')
         if 'G' in params and 'M' in params:
             raise GCodeException('g and m command found')
+        # N and M are incompatible in one line
         if 'N' in params and 'M' in params:
             raise GCodeException('n and m command found')
-            # In einer Zeile darf nicht N (Niederhalterkommando) und M (eigener Befehl) stehen
         return GCode(params)

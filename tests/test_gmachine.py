@@ -30,7 +30,7 @@ class TestGMachine(unittest.TestCase):
     def test_safe_zero(self):
         m = GMachine()
         m.do_command(GCode.parse_line("X1Y2Z3E4Q4N5A6B7"))
-        m.safe_zero()    # In safe_zero (in gmachine.py) die anderen safe daten eingeben
+        m.safe_zero()    # see gmachine
         self.assertEqual(m.position(), Coordinates(0, 0, TABLE_SIZE_Z_MM, 4, 4, 0, 0, 0))
 
     def test_none(self):
@@ -178,7 +178,6 @@ class TestGMachine(unittest.TestCase):
                           m.do_command, GCode.parse_line("G4P-0.5"))
 
     def test_g17_g18_g19(self):
-        # Einstellen der Ebene moeglich (verwendung fuer schwernkbares bett)
         m = GMachine()
         m.do_command(GCode.parse_line("G19"))
         self.assertEqual(m.plane(), PLANE_YZ)
@@ -188,13 +187,12 @@ class TestGMachine(unittest.TestCase):
         self.assertEqual(m.plane(), PLANE_XY)
 
     def test_g20_g21(self):
-        # Wechsel zwischen inches und millimeter
         m = GMachine()
-        m.do_command(GCode.parse_line("G20"))    # Ab hier ist der G-Code in inches
+        m.do_command(GCode.parse_line("G20"))    # when G20 is called all geometric instances are measured in inches
         m.do_command(GCode.parse_line("X3Y2Z1E0.5Q2N1A5B7"))
         self.assertEqual(m.position(), Coordinates(76.2, 50.8, 25.4, 12.7, 50.8, 25.4, 127, 177.8))
-        # Rechnet den angegebenen G-Code von inches zu millimeter
-        m.do_command(GCode.parse_line("G21"))   # Ab hier ist der G-Code in millimeter
+
+        m.do_command(GCode.parse_line("G21"))   # when G20 is called all geometric instances are measured in mm
         m.do_command(GCode.parse_line("X3Y2Z1E0.5Q2N1A2B3"))
         self.assertEqual(m.position(), Coordinates(3, 2, 1, 0.5, 2, 1, 2, 3))
 
@@ -233,29 +231,29 @@ class TestGMachine(unittest.TestCase):
         m.do_command(GCode.parse_line("G92"))
         m.do_command(GCode.parse_line("X1Y1Z1E1Q1N1A1B1"))
         self.assertEqual(m.position(), Coordinates(7, 8, 9, 11, 11, 12, 13, 14))
-        # Unsicher bei dieser Zeile aber why not koennte ja amazing werden
 
     def test_g53_g91_g92(self):
         m = GMachine()
-        m.do_command(GCode.parse_line("G92X-50Y-60Z-70E-80Q-90N-100A-110B-120"))    # Wechsel zu local coords
+        m.do_command(GCode.parse_line("G92X-50Y-60Z-70E-80Q-90N-100A-110B-120"))    # switching to local coords
         m.do_command(GCode.parse_line("X-45Y-55Z-65E-75Q-85N-95A-105B-115"))
         self.assertEqual(m.position(), Coordinates(5, 5, 5, 5, 5, 5, 5, 5))
-        m.do_command(GCode.parse_line("G91"))    # Wechsel zu relativ coords
+        m.do_command(GCode.parse_line("G91"))    # switching to relative coords
         m.do_command(GCode.parse_line("X-1Y-2Z-3E-4Q-3N-2A-2B-1"))
         self.assertEqual(m.position(), Coordinates(4, 3, 2, 1, 2, 3, 3, 2))
 
-    def test_m3_m5(self):
-        # Ist fuer spindel gedacht, never touch a running system
-        m = GMachine()
-        m.do_command(GCode.parse_line("M3S" + str(SPINDLE_MAX_RPM)))
-        self.assertRaises(GMachineException,
-                          m.do_command, GCode.parse_line("M3S-10"))
-        self.assertRaises(GMachineException,
-                          m.do_command, GCode.parse_line("M3S999999999"))
-        m.do_command(GCode.parse_line("M5"))
+    # spindle is not used - commented out
+    # def test_m3_m5(self):
+    #     # testing the spindle system
+    #     m = GMachine()
+    #     m.do_command(GCode.parse_line("M3S" + str(SPINDLE_MAX_RPM)))
+    #     self.assertRaises(GMachineException,
+    #                       m.do_command, GCode.parse_line("M3S-10"))
+    #     self.assertRaises(GMachineException,
+    #                       m.do_command, GCode.parse_line("M3S999999999"))
+    #     m.do_command(GCode.parse_line("M5"))
 
     def test_m104_m109(self):
-        # Test von extruder und heater
+        # test extruder and heater
         m = GMachine()
         m.do_command(GCode.parse_line("M104S"+str(MIN_TEMPERATURE)))
         self.assertEqual(m.extruder_target_temperature(), MIN_TEMPERATURE)
@@ -277,7 +275,7 @@ class TestGMachine(unittest.TestCase):
                           GCode.parse_line("M109"))
 
     def test_m106_m107(self):
-        # An und aus stellen des ventilators
+        # testing fan (on and off)
         m = GMachine()
         m.do_command(GCode.parse_line("M106"))
         self.assertTrue(m.fan_state())
@@ -298,7 +296,7 @@ class TestGMachine(unittest.TestCase):
         m.AUTO_FAN_ON = False
 
     def test_m140_m190(self):
-        # Abfrage von heater bed und heater temperature, aber unsicher
+        # probing heater and heater bed temperature
         m = GMachine()
         m.do_command(GCode.parse_line("M140S"+str(MIN_TEMPERATURE)))
         self.assertEqual(m.bed_target_temperature(), MIN_TEMPERATURE)

@@ -17,6 +17,7 @@ class HardwareWatchdog(threading.Thread):
             hal.watchdog_feed()
             time.sleep(3)
 
+
 # for test purpose
 if __name__ == "__main__":
     hal.init()

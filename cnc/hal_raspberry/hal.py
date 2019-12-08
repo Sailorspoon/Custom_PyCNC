@@ -130,7 +130,7 @@ def disable_steppers():
 
 
 def __calibrate_private(x, y, z, invert):
-    """ ACHTUNG muss spaeter noch geaendert werden, da nur noch ein endstop pro Achse benoetigt"""
+    """ Has to be changed later to support all axis, which need calibration"""
     if invert:
         stepper_inverted_x = not STEPPER_INVERTED_X
         stepper_inverted_y = not STEPPER_INVERTED_Y
@@ -159,12 +159,14 @@ def __calibrate_private(x, y, z, invert):
         gpio.set(STEPPER_DIR_PIN_Z)
     pins = 0
     max_size = 0
+    # check later, if x and y are probed independently (good -> no changes necessary),
+    # or after the x probe, the y follows immediately (bad -> outside of heating bed)
     if x:
         pins |= STEP_PIN_MASK_X
-        max_size = max(max_size, TABLE_SIZE_X_MM * STEPPER_PULSES_PER_MM_X)
+        max_size = max(max_size, TABLE_SIZE_RADIUS_MM * STEPPER_PULSES_PER_MM_X)
     if y:
         pins |= STEP_PIN_MASK_Y
-        max_size = max(max_size, TABLE_SIZE_Y_MM * STEPPER_PULSES_PER_MM_Y)
+        max_size = max(max_size, TABLE_SIZE_RADIUS_MM * STEPPER_PULSES_PER_MM_Y)
     if z:
         pins |= STEP_PIN_MASK_Z
         max_size = max(max_size, TABLE_SIZE_Z_MM * STEPPER_PULSES_PER_MM_Z)
@@ -250,7 +252,6 @@ def move(generator):
     instant = INSTANT_RUN
     st = time.time()
     current_cb = 0
-    """ Variable k zu k00 geaendert, um Doppelbelegung mit koFi Extruder zu vermeiden"""
     k00 = 0
     k0 = 0
     for direction, tx, ty, tz, te, tq, tn, ta, tb in generator:
@@ -329,12 +330,12 @@ def move(generator):
         # matter for pulses with 1-2us length.
         prev = k00 + STEPPER_PULSE_LENGTH_US
         # instant run handling
-        if not is_ran and instant and current_cb is None  and k00 - k0 > 100000:     # wait at least 100 ms is uploaded
+        if not is_ran and instant and current_cb is None and k00 - k0 > 100000:  # wait at least 100 ms is uploaded
             nt = time.time() - st
             ng = (k00 - k0) / 1000000.0
             if nt > ng:
                 logging.warn("Buffer preparing for instant run took more "
-                             "time then buffer time"
+                             "time than buffer time"
                              " {}/{}".format(nt, ng))
                 instant = False
             else:

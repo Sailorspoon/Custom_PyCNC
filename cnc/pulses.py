@@ -63,34 +63,10 @@ class PulseGenerator(object):
         """
         if not self.AUTO_VELOCITY_ADJUSTMENT:
             return velocity_mm_sec
-        var_const = 1.0  # Umbenennen der Variable, um Doppelbelegung zu vermeiden
-        # if velocity_mm_sec.x * SECONDS_IN_MINUTE > MAX_VELOCITY_MM_PER_MIN_X:
-        #     var_const = min(var_const, MAX_VELOCITY_MM_PER_MIN_X
-        #                     / velocity_mm_sec.x / SECONDS_IN_MINUTE)
-        # if velocity_mm_sec.y * SECONDS_IN_MINUTE > MAX_VELOCITY_MM_PER_MIN_Y:
-        #     var_const = min(var_const, MAX_VELOCITY_MM_PER_MIN_Y
-        #                     / velocity_mm_sec.y / SECONDS_IN_MINUTE)
-        # if velocity_mm_sec.z * SECONDS_IN_MINUTE > MAX_VELOCITY_MM_PER_MIN_Z:
-        #     var_const = min(var_const, MAX_VELOCITY_MM_PER_MIN_Z
-        #                     / velocity_mm_sec.z / SECONDS_IN_MINUTE)
+        var_const = 1.0
         if velocity_mm_sec * SECONDS_IN_MINUTE > MAX_INDICATOR:
             var_const = min(var_const, MAX_INDICATOR
                             / velocity_mm_sec / SECONDS_IN_MINUTE)
-        # if velocity_mm_sec.e * SECONDS_IN_MINUTE > MAX_VELOCITY_MM_PER_MIN_E:
-        #     var_const = min(var_const, MAX_VELOCITY_MM_PER_MIN_E
-        #                     / velocity_mm_sec.e / SECONDS_IN_MINUTE)
-        # if velocity_mm_sec.q * SECONDS_IN_MINUTE > MAX_VELOCITY_MM_PER_MIN_Q:
-        #     var_const = min(var_const, MAX_VELOCITY_MM_PER_MIN_Q
-        #                     / velocity_mm_sec.q / SECONDS_IN_MINUTE)
-        # if velocity_mm_sec.n * SECONDS_IN_MINUTE > MAX_VELOCITY_MM_PER_MIN_N:
-        #     var_const = min(var_const, MAX_VELOCITY_MM_PER_MIN_N
-        #                     / velocity_mm_sec.n / SECONDS_IN_MINUTE)
-        # if velocity_mm_sec.a * SECONDS_IN_MINUTE > MAX_VELOCITY_MM_PER_MIN_A:
-        #     var_const = min(var_const, MAX_VELOCITY_MM_PER_MIN_A
-        #                     / velocity_mm_sec.a / SECONDS_IN_MINUTE)
-        # if velocity_mm_sec.b * SECONDS_IN_MINUTE > MAX_VELOCITY_MM_PER_MIN_B:
-        #     var_const = min(var_const, MAX_VELOCITY_MM_PER_MIN_B
-        #                     / velocity_mm_sec.b / SECONDS_IN_MINUTE)
         if var_const != 1.0:
             logging.warning("Out of speed, multiply velocity by {}".format(var_const))
         return velocity_mm_sec * var_const
@@ -149,7 +125,7 @@ class PulseGenerator(object):
         self._iteration_a = 0
         self._iteration_b = 0
         self._iteration_direction = None
-        logging.debug(', '.join("%s: %s\n" % i for i in vars(self).items()))
+        logging.debug(' '.join("%s: %s\n" % i for i in vars(self).items()))
         return self
 
     def _to_accelerated_time(self, pt_s):
@@ -268,7 +244,6 @@ class PulseGenerator(object):
             else:
                 te = am
                 self._iteration_e += 1
-        """ Ergaenzt um weitere Druckkopf FHGe (kopiert von oben)"""
         if tq is not None:
             if tq > m:
                 tq = None
@@ -281,7 +256,6 @@ class PulseGenerator(object):
             else:
                 tn = am
                 self._iteration_n += 1
-        """ Ergaenzt um Druckbett FHGe (kopiert von oben)"""
         if ta is not None:
             if ta > m:
                 ta = None
@@ -312,7 +286,7 @@ class PulseGenerator(object):
 
     def max_velocity(self):
         """ Get max velocity for each axis.
-        :return: Vector with max velocity(in mm per min) for each axis.
+        :return: Vector with max velocity (in mm per min) for each axis.
         """
         _, _, v = self._get_movement_parameters()
         return v * SECONDS_IN_MINUTE
@@ -371,21 +345,41 @@ class PulseGeneratorLinear(PulseGenerator):
         # velocity of each axis, calculated with pythagoras
         velocity_carriage_mm_per_min = Coordinates(0, 0, 0, 0, 0, 0, 0, 0)
         velocity_mm_per_min_axis = Coordinates(0, 0, 0, 0, 0, 0, 0, 0)
-        if delta_mm.x == 0:
+
+        if delta_mm.x == 0 and delta_mm.y == 0 and delta_mm.z == 0:
             velocity_mm_per_min_axis.x = 0
+            velocity_mm_per_min_axis.y = 0
+            velocity_mm_per_min_axis.z = 0
         else:
             velocity_mm_per_min_axis.x = velocity_mm_per_min * \
                                          (delta_mm.x / math.sqrt(delta_mm.x ** 2 + delta_mm.y ** 2 + delta_mm.z ** 2))
-        if delta_mm.y == 0:
-            velocity_mm_per_min_axis.y = 0
-        else:
+
             velocity_mm_per_min_axis.y = velocity_mm_per_min * \
                                          (delta_mm.y / math.sqrt(delta_mm.x ** 2 + delta_mm.y ** 2 + delta_mm.z ** 2))
-        if delta_mm.z == 0:
-            velocity_mm_per_min_axis.z = 0
-        else:
+
             velocity_mm_per_min_axis.z = velocity_mm_per_min * \
                                          (delta_mm.z / math.sqrt(delta_mm.x ** 2 + delta_mm.y ** 2 + delta_mm.z ** 2))
+
+        # logging.debug("velocity_mm_per_min_axis (x): %s" % velocity_mm_per_min_axis.x)
+        # logging.debug("velocity_mm_per_min_axis (y): %s" % velocity_mm_per_min_axis.y)
+        # logging.debug("velocity_mm_per_min_axis (z): %s" % velocity_mm_per_min_axis.z)
+
+        # coupling of head velocity with koFi extrusion rate
+        if delta_mm.x or delta_mm.y or delta_mm.z != 0:
+            # check, if absolut velocity of head movement exceeds maximum speed of koFi extrusion rate
+            # decrease by factor calculated with function _adjust_velocity
+            absolute_vel_head_mm_per_s = math.sqrt(velocity_mm_per_min_axis.x ** 2 + velocity_mm_per_min_axis.y ** 2 +
+                                                   velocity_mm_per_min_axis.z ** 2) / SECONDS_IN_MINUTE
+            absolute_vel_head_adj_mm_per_s = self._adjust_velocity(absolute_vel_head_mm_per_s, MAX_VELOCITY_MM_PER_MIN_Q)
+            # factor may have rounding errors that cause a velocity above the maximum velocity of Q (koFi)
+            factor = absolute_vel_head_adj_mm_per_s / absolute_vel_head_mm_per_s
+
+            if factor < 1:
+                velocity_mm_per_min_axis.x = velocity_mm_per_min_axis.x * factor  # prevent rounding errors
+                velocity_mm_per_min_axis.y = velocity_mm_per_min_axis.y * factor
+                velocity_mm_per_min_axis.z = velocity_mm_per_min_axis.z * factor
+                logging.debug("Absolute head speed exceeds maximum koFi extrusion rate, "
+                              "decrease by factor of {}".format(factor))
 
         # velocity of the carriages from derivation of Carriage movement ( d/dt height_carriage_mm)
         velocity_carriage_mm_per_min.x = (velocity_mm_per_min_axis.x * (
@@ -429,6 +423,7 @@ class PulseGeneratorLinear(PulseGenerator):
                 velocity_mm_per_min / SECONDS_IN_MINUTE / distance_total_mm), MAX_VELOCITY_MM_PER_MIN_E)
         self.max_velocity_mm_per_sec.q = self._adjust_velocity(distance_mm.q * (
                 velocity_mm_per_min / SECONDS_IN_MINUTE / distance_total_mm), MAX_VELOCITY_MM_PER_MIN_Q)
+
         self.max_velocity_mm_per_sec.n = self._adjust_velocity(distance_mm.n * (
                 velocity_mm_per_min / SECONDS_IN_MINUTE / distance_total_mm), MAX_VELOCITY_MM_PER_MIN_N)
         self.max_velocity_mm_per_sec.a = self._adjust_velocity(distance_mm.a * (
@@ -464,13 +459,10 @@ class PulseGeneratorLinear(PulseGenerator):
         self._total_pulses_y = round(abs(distance_mm.y * STEPPER_PULSES_PER_MM_Y))
         self._total_pulses_z = round(abs(distance_mm.z * STEPPER_PULSES_PER_MM_Z))
         self._total_pulses_e = round(abs(distance_mm.e * STEPPER_PULSES_PER_MM_E))
-        """ Ergaenzung um die Totalpulses in k und n - Richtung (siehe config.py für Kalibrierung und hal_virtual.py und
-        gmachine)"""
-        self._total_pulses_q = round(distance_mm.q * STEPPER_PULSES_PER_MM_Q)
-        self._total_pulses_n = round(distance_mm.n * STEPPER_PULSES_PER_MM_N)
-        """ Ergaenzung um die Totalpulses in a und b - Richtung"""
-        self._total_pulses_a = round(distance_mm.a * STEPPER_PULSES_PER_MM_A)
-        self._total_pulses_b = round(distance_mm.b * STEPPER_PULSES_PER_MM_B)
+        self._total_pulses_q = round(abs(distance_mm.q * STEPPER_PULSES_PER_MM_Q))
+        self._total_pulses_n = round(abs(distance_mm.n * STEPPER_PULSES_PER_MM_N))
+        self._total_pulses_a = round(abs(distance_mm.a * STEPPER_PULSES_PER_MM_A))
+        self._total_pulses_b = round(abs(distance_mm.b * STEPPER_PULSES_PER_MM_B))
         self._direction = (math.copysign(1, distance_mm.x),
                            math.copysign(1, distance_mm.y),
                            math.copysign(1, distance_mm.z),
@@ -544,9 +536,9 @@ class PulseGeneratorCircular(PulseGenerator):
             :param plane: plane to interpolate.
             :param direction: clockwise or counterclockwise.
             :param velocity: velocity in mm per min.
-            Fuer die Ergaenzung um weitere Achsen - Dieser Block ist ermal irrelevant,
-            da kein 3D-Druck slicer G2 oder G3 Befehle nativ unterstützt - die Bearbeitung
-            des Blocks wird zunächst hinten angestellt und lediglich die Funktionseingaben angepasst
+            IMPORTANT: Since the circular PulseGenerator is not used when working
+            with 3D printers  (no G2 or G3 instructions from any existing slicer as of today)
+            this whole section has not been checked for applicability and needs to be overhauled!
         """
         super(PulseGeneratorCircular, self).__init__(delta)
         self._plane = plane
@@ -710,7 +702,6 @@ class PulseGeneratorCircular(PulseGenerator):
         else:
             raise ValueError("Unknown plane")
         self._iterations_e = abs(delta.e) * STEPPER_PULSES_PER_MM_E
-        """ An dieser Stelle muss fuer die Ergaenzung der anderen Achsen noch eingegriffen werden"""
         # Velocity splits with corresponding distance.
         if full_length == 0:
             circular_velocity = velocity
@@ -719,7 +710,6 @@ class PulseGeneratorCircular(PulseGenerator):
             circular_velocity = arc / full_length * velocity
             self._e_velocity = abs(delta.e) / full_length * velocity
         if self._plane == PLANE_XY:
-            # dummy erstmal MAX_VELOCITY_MM_PER_MIN, spaeter anpassen
             self.max_velocity_mm_per_sec = self._adjust_velocity(
                 Coordinates(circular_velocity, circular_velocity,
                             self._velocity_3rd, self._e_velocity, 0, 0, 0, 0), MAX_VELOCITY_MM_PER_MIN_X)
@@ -800,8 +790,6 @@ class PulseGeneratorCircular(PulseGenerator):
             direction = -direction
             side = not side
         return np, direction, side
-
-    """ Umbenennen der Variablen, um Doppelbelegung mit der Achse A und B zu vermeiden"""
 
     def __circular_find_time(self, ac, bc):
         angle = self.__angle(ac, bc)

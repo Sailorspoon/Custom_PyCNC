@@ -32,8 +32,9 @@ class GMachine(object):
 
     def __init__(self):
         """ Initialization.
+            Starting postion is at the top of the printer
         """
-        self._position = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        self._position = Coordinates(0.0, 0.0, TABLE_SIZE_Z_MM, 0.0, 0.0, 0.0, 0.0, 0.0)
         # init variables
         self._velocity = 0
         self._spindle_rpm = 0
@@ -113,11 +114,8 @@ class GMachine(object):
     def __check_delta(self, delta):
         pos = self._position + delta
         if not pos.is_in_aabb(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                              Coordinates(TABLE_SIZE_X_MM, TABLE_SIZE_Y_MM,  # hier nur 3D Achsen relevant
+                              Coordinates(TABLE_SIZE_RADIUS_MM, TABLE_SIZE_RADIUS_MM,  # hier nur 3D Achsen relevant
                                           TABLE_SIZE_Z_MM, 0, 0, MAX_ROTATION_N_MM, MAX_TILT_ANGLE, 0)):
-            raise GMachineException("out of effective area")
-            # Check if Coordinates are within circular Table
-        if pos.x ** 2 + pos.y ** 2 > TABLE_SIZE_RADIUS_MM ** 2:
             raise GMachineException("out of effective area")
 
     # noinspection PyMethodMayBeStatic
@@ -134,7 +132,6 @@ class GMachine(object):
             raise GMachineException("out of maximum speed")
 
     def _move_linear(self, delta, velocity):
-        # Ergaenzt um Achsen
         delta = delta.round(1.0 / STEPPER_PULSES_PER_MM_X,
                             1.0 / STEPPER_PULSES_PER_MM_Y,
                             1.0 / STEPPER_PULSES_PER_MM_Z,
@@ -233,17 +230,20 @@ class GMachine(object):
         # get delta vector and put it on circle
         circle_end = Coordinates(0, 0, 0, 0, 0, 0, 0, 0)
         if self._plane == PLANE_XY:
+            # IMPORTANT: TABLE_SIZE_RADIUS_MM is just a prliminary adjustment since
+            # circular movement is not utilized by any current slicer for 3D printing
+            # IF THIS FUNCTION IS TO BE USED, CHECK FIRST IF THERE ARE ANY ADJUSTMENTS NECESSARY
             circle_end.x, circle_end.y = \
                 self.__adjust_circle(delta.x, delta.y, radius.x, radius.y,
                                      direction, self._position.x,
-                                     self._position.y, TABLE_SIZE_X_MM,
-                                     TABLE_SIZE_Y_MM)
+                                     self._position.y, TABLE_SIZE_RADIUS_MM,
+                                     TABLE_SIZE_RADIUS_MM)
             circle_end.z = delta.z
         elif self._plane == PLANE_YZ:
             circle_end.y, circle_end.z = \
                 self.__adjust_circle(delta.y, delta.z, radius.y, radius.z,
                                      direction, self._position.y,
-                                     self._position.z, TABLE_SIZE_Y_MM,
+                                     self._position.z, TABLE_SIZE_RADIUS_MM,
                                      TABLE_SIZE_Z_MM)
             circle_end.x = delta.x
         elif self._plane == PLANE_ZX:
@@ -251,7 +251,7 @@ class GMachine(object):
                 self.__adjust_circle(delta.z, delta.x, radius.z, radius.x,
                                      direction, self._position.z,
                                      self._position.x, TABLE_SIZE_Z_MM,
-                                     TABLE_SIZE_X_MM)
+                                     TABLE_SIZE_RADIUS_MM)
             circle_end.y = delta.y
         circle_end.e = delta.e
         circle_end.q = delta.q
@@ -286,13 +286,12 @@ class GMachine(object):
         # save position
         self._position = self._position + circle_end + linear_delta
 
-    def safe_zero(self, x=True, y=True, n=True, a=True, b=True):
+    def safe_zero(self, x=True, y=True, z=True, n=True, a=True):
         """ Move head to zero position safely.
         :param x: boolean, move X axis to zero
         :param y: boolean, move Y axis to zero
         :param n: boolean, move N axis to zero position (rotatory degree of freedom)
         :param a: boolean, move A axis to zero position (tilt)
-        :param b: boolean, move B axis to zero position (rotatory degree of freedom)
         the logic of this function has been changed - the savest position is at the top
         of the printer. So the printer will move this position no matter what the inputs of the other
         axis are. The amount of koFi, that has to be extruded corresponds with the total distance.
@@ -303,27 +302,35 @@ class GMachine(object):
         nozzle in G-Code preprocessing
         """
         # In order to prevent the "out of effective area" error message (rounding errors)
-        TOP_Z_LOCATION = TABLE_SIZE_Z_MM - 1
+        TOP_Z_LOCATION = TABLE_SIZE_Z_MM - self._position.z
+        MIN_VEL = min(800, MAX_VELOCITY_MM_PER_MIN_X, MAX_VELOCITY_MM_PER_MIN_Y, MAX_VELOCITY_MM_PER_MIN_Z,
+                      MAX_VELOCITY_MM_PER_MIN_Q)
+        logging.debug("self_position (x): %s, self_position (y): %s, self_position (z): %s, self_position (dest):%s"
+                      % (self._position.x, self._position.y, self._position.z, TOP_Z_LOCATION))
+        if not x and not y:
+            extrusion_amount = TOP_Z_LOCATION
+            logging.debug("kofi extrusion amount (only z): %s" % extrusion_amount)
+            d = Coordinates(0, 0, TOP_Z_LOCATION, 0, extrusion_amount, 0, 0, 0)
+            self._move_linear(d, MIN_VEL)
         if x and not y:
             extrusion_amount = math.sqrt(self._position.x * self._position.x + TOP_Z_LOCATION * TOP_Z_LOCATION)
-            logging.debug("kofi extrusion amount (only x): %s" % extrusion_amount)
+            logging.debug("kofi extrusion amount (x, z): %s" % extrusion_amount)
             d = Coordinates(-self._position.x, 0, TOP_Z_LOCATION, 0, extrusion_amount, 0, 0, 0)
-            self._move_linear(d, min(MAX_VELOCITY_MM_PER_MIN_X,
-                                     MAX_VELOCITY_MM_PER_MIN_Y, MAX_VELOCITY_MM_PER_MIN_Z, MAX_VELOCITY_MM_PER_MIN_Q))
+            self._move_linear(d, MIN_VEL)
         elif y and not x:
             extrusion_amount = math.sqrt(self._position.y * self._position.y + TOP_Z_LOCATION * TOP_Z_LOCATION)
-            logging.debug("kofi extrusion amount (only y): %s" % extrusion_amount)
-            d = Coordinates(0, -self._position.y, TOP_Z_LOCATION, 0, TOP_Z_LOCATION, extrusion_amount, 0, 0)
-            self._move_linear(d, min(MAX_VELOCITY_MM_PER_MIN_X,
-                                     MAX_VELOCITY_MM_PER_MIN_Y, MAX_VELOCITY_MM_PER_MIN_Z, MAX_VELOCITY_MM_PER_MIN_Q))
+            logging.debug("kofi extrusion amount (y, z): %s" % extrusion_amount)
+            d = Coordinates(0, -self._position.y, TOP_Z_LOCATION, 0, extrusion_amount, 0, 0, 0)
+            self._move_linear(d, MIN_VEL)
 
         elif x and y:
             extrusion_amount = math.sqrt(self._position.x * self._position.x + self._position.y * self._position.y +
                                          TOP_Z_LOCATION * TOP_Z_LOCATION)
-            logging.debug("kofi extrusion amount (both): %s" % extrusion_amount)
+            logging.debug("kofi extrusion amount (x, y and z): %s" % extrusion_amount)
             d = Coordinates(-self._position.x, -self._position.y, TOP_Z_LOCATION, 0, extrusion_amount, 0, 0, 0)
             self._move_linear(d, min(MAX_VELOCITY_MM_PER_MIN_X,
                                      MAX_VELOCITY_MM_PER_MIN_Y, MAX_VELOCITY_MM_PER_MIN_Z, MAX_VELOCITY_MM_PER_MIN_Q))
+
         if n:
             d = Coordinates(0, 0, 0, 0, 0, -self._position.n, 0, 0)
             logging.debug("self_position (n): %s" % self._position.n)
@@ -332,10 +339,6 @@ class GMachine(object):
             d = Coordinates(0, 0, 0, 0, 0, 0, -self._position.a, 0)
             logging.debug("self_position (a): %s" % self._position.a)
             self._move_linear(d, MAX_VELOCITY_MM_PER_MIN_A)
-        if b:
-            d = Coordinates(0, 0, 0, 0, 0, 0, 0, -self._position.b)
-            logging.debug("self_position (b): %s" % self._position.b)
-            self._move_linear(d, MAX_VELOCITY_MM_PER_MIN_B)
 
     def position(self):
         """ Return current machine position (after the latest command)
@@ -377,6 +380,27 @@ class GMachine(object):
         """
         return self.__get_target_temperature(HEATER_BED)
 
+    @staticmethod
+    def _maximum_compatible_vel(x, y, z, e, q, n, a, b):
+        """ Support function for G0 command"""
+        vl = 9999999    # initialization as dummy variable
+        if not (x or y or z or e or q or n or a or b):
+            vl = MIN_VELOCITY_MM_PER_MIN
+        if x or y or z:
+            vl = min(MAX_VELOCITY_MM_PER_MIN_X, MAX_VELOCITY_MM_PER_MIN_Y, MAX_VELOCITY_MM_PER_MIN_Z,
+                     MAX_VELOCITY_MM_PER_MIN_Q)
+        if e and vl > MAX_VELOCITY_MM_PER_MIN_E:
+            vl = MAX_VELOCITY_MM_PER_MIN_E
+        if q and vl > MAX_VELOCITY_MM_PER_MIN_Q:
+            vl = MAX_VELOCITY_MM_PER_MIN_Q
+        if n and vl > MAX_VELOCITY_MM_PER_MIN_N:
+            vl = MAX_VELOCITY_MM_PER_MIN_N
+        if a and vl > MAX_VELOCITY_MM_PER_MIN_A:
+            vl = MAX_VELOCITY_MM_PER_MIN_A
+        if b and vl > MAX_VELOCITY_MM_PER_MIN_B:
+            vl = MAX_VELOCITY_MM_PER_MIN_B
+        return vl
+
     def do_command(self, gcode):
         """ Perform action.
         :param gcode: GCode object which represent one gcode line
@@ -393,7 +417,7 @@ class GMachine(object):
         # read parameters
         if self._absoluteCoordinates:
             global coord
-            coord = gcode.coordinates(self._position - self._local,  # wo Druckkopf hin soll
+            coord = gcode.coordinates(self._position - self._local,
                                       self._convertCoordinates)
             coord = coord + self._local
             delta = coord - self._position
@@ -417,6 +441,9 @@ class GMachine(object):
                      MAX_VELOCITY_MM_PER_MIN_A,
                      MAX_VELOCITY_MM_PER_MIN_B)
             # has been changed to minimum of the maximum speed for all axis
+            custom_vel = gcode.has('X'), gcode.has('Y'), gcode.has('Z'), gcode.has('E'), \
+                         gcode.has('Q'), gcode.has('N'), gcode.has('A'), gcode.has('B')
+            vl = self._maximum_compatible_vel(*custom_vel)
             self._move_linear(delta, vl)
         elif c == 'G1':  # linear interpolation
             self._move_linear(delta, velocity)
@@ -444,12 +471,12 @@ class GMachine(object):
             self._convertCoordinates = 1.0
         elif c == 'G28':  # home
             # see safe_zero function in this file for explanation
-            axises = gcode.has('X'), gcode.has('Y'), gcode.has('N'), gcode.has('A'), gcode.has('B')
+            axises = gcode.has('X'), gcode.has('Y'), True, gcode.has('N'), gcode.has('A')
             if axises == (False, False, False, False, False):
                 axises = True, True, True, True, True
             self.safe_zero(*axises)
             hal.join()
-            if not hal.calibrate(*axises):
+            if not hal.calibrate(gcode.has('X'), gcode.has('Y'), True):
                 raise GMachineException("failed to calibrate")
         elif c == 'G53':  # switch to machine coords
             self._local = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)

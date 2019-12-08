@@ -203,8 +203,9 @@ class TestPulses(unittest.TestCase):
                                               self.v))
         hal_virtual.move(PulseGeneratorLinear(Coordinates(25.4, 0, 0, 0, 0, 0, 0, 0),
                                               self.v))
-        hal_virtual.move(PulseGeneratorLinear(Coordinates(TABLE_SIZE_X_MM,
-                                                          TABLE_SIZE_Y_MM,
+        # just a preliminary fix, should be rechecked later
+        hal_virtual.move(PulseGeneratorLinear(Coordinates(TABLE_SIZE_RADIUS_MM,
+                                                          TABLE_SIZE_RADIUS_MM,
                                                           TABLE_SIZE_Z_MM,
                                                           100.0, 0, 0, 0, 0), self.v))
         hal_virtual.move(PulseGeneratorCircular(Coordinates(0, 20, 0, 0, 0, 0, 0, 0),
@@ -251,7 +252,8 @@ class TestPulses(unittest.TestCase):
 
     def test_pulses_count_and_timings(self):
         # Check if number of pulses is equal to specified distance.
-        m = Coordinates(TABLE_SIZE_X_MM, TABLE_SIZE_Y_MM, TABLE_SIZE_Z_MM,
+        # just a preliminary fix, should be rechecked later
+        m = Coordinates(TABLE_SIZE_RADIUS_MM, TABLE_SIZE_RADIUS_MM, TABLE_SIZE_Z_MM,
                         100.0, 0, MAX_ROTATION_N_MM, MAX_TILT_ANGLE, 0)
         # Falls ein maximaler verdrehwinkel des bettes feststeht, den letzten eintrag abaendern
         g = PulseGeneratorLinear(m, self.v)
@@ -313,7 +315,8 @@ class TestPulses(unittest.TestCase):
         # Check if acceleration present in pulses sequence and if velocity
         # is correct, since PulseGenerator is responsible for this, check only
         # one child class.
-        m = Coordinates(TABLE_SIZE_X_MM, 0, 0, 0, 0, 0, 0, 0)
+        # TABLE_SIZE_X_MM is replacd by TABLE_SIZE_RADIUS_MM - just a preliminary fix, should be rechecked later
+        m = Coordinates(TABLE_SIZE_RADIUS_MM, 0, 0, 0, 0, 0, 0, 0)
         velocity = 1000
         g = PulseGeneratorLinear(m, velocity)
         i = 0
@@ -324,7 +327,8 @@ class TestPulses(unittest.TestCase):
                 continue
             if i == 2:
                 at = px - lx
-            if i == TABLE_SIZE_X_MM * STEPPER_PULSES_PER_MM_X / 2:
+            # see above - TABLE_SIZE_RADIUS_MM should be rechecked later
+            if i == TABLE_SIZE_RADIUS_MM * STEPPER_PULSES_PER_MM_X / 2:
                 lt = px - lx
             bt = px - lx
             lx = px

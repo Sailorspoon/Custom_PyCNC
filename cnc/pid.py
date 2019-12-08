@@ -77,7 +77,7 @@ class Pid(object):
         return self._target_value
 
 
-# for test purpose, see details in corresponding test file
+# for test purposes, see details in corresponding test file
 if __name__ == "__main__":
     p = Pid(230, {"P": 0.1000, "I": 0.0274, "D": 0.2055}, 0)
     c = 0.0039

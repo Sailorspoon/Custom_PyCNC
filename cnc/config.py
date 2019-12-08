@@ -3,6 +3,9 @@
 
 import math
 
+# new parameter for newly developed printer head
+distance_pivot_FFF_nozzle = 0
+
 # new parameter for delta-Logic
 distance_pivot_carriage_mm = {'a': 0, 'b': 0, 'c': 0}
 radius_heatbed = 263  # distance middle heatbed to carriage on xy-level
@@ -35,14 +38,14 @@ distance_mm = dict()
 height_carriage_mm_old = dict()
 
 # Maximum velocity for each axis in millimeter per minute.
-MAX_VELOCITY_MM_PER_MIN_X = 24000
-MAX_VELOCITY_MM_PER_MIN_Y = 24000
-MAX_VELOCITY_MM_PER_MIN_Z = 24000
+MAX_VELOCITY_MM_PER_MIN_X = 6000
+MAX_VELOCITY_MM_PER_MIN_Y = 6000
+MAX_VELOCITY_MM_PER_MIN_Z = 6000
 MAX_VELOCITY_MM_PER_MIN_E = 1500
-MAX_VELOCITY_MM_PER_MIN_Q = 1000
-MAX_VELOCITY_MM_PER_MIN_N = 10000
-MAX_VELOCITY_MM_PER_MIN_A = 10000
-MAX_VELOCITY_MM_PER_MIN_B = 10000
+MAX_VELOCITY_MM_PER_MIN_Q = 3000
+MAX_VELOCITY_MM_PER_MIN_N = 600
+MAX_VELOCITY_MM_PER_MIN_A = 800
+MAX_VELOCITY_MM_PER_MIN_B = 800
 MIN_VELOCITY_MM_PER_MIN = 1
 # Average velocity for endstop calibration procedure
 CALIBRATION_VELOCITY_MM_PER_MIN = 300
@@ -52,8 +55,8 @@ STEPPER_PULSES_PER_MM_X = 100
 STEPPER_PULSES_PER_MM_Y = 100
 STEPPER_PULSES_PER_MM_Z = 100
 STEPPER_PULSES_PER_MM_E = 150
-STEPPER_PULSES_PER_MM_Q = 150
-STEPPER_PULSES_PER_MM_N = 200
+STEPPER_PULSES_PER_MM_Q = 100
+STEPPER_PULSES_PER_MM_N = 80
 STEPPER_PULSES_PER_MM_A = 100
 STEPPER_PULSES_PER_MM_B = 100
 
@@ -76,8 +79,8 @@ ENDSTOP_INVERTED_Y = True
 ENDSTOP_INVERTED_Z = False  # Auto leveler
 
 # Workplace physical size.
-TABLE_SIZE_X_MM = 100
-TABLE_SIZE_Y_MM = 100
+# TABLE_SIZE_X_MM = 100
+# TABLE_SIZE_Y_MM = 100
 TABLE_SIZE_Z_MM = 455
 TABLE_SIZE_RADIUS_MM = 180
 MAX_ROTATION_N_MM = 360

@@ -5,7 +5,6 @@ from cnc.heater import *
 from cnc.pid import *
 from cnc.config import *
 
-""" Aehnliche Struktur fuer weitere Sensoren angeplant - falls verwendet"""
 
 class TestHeater(unittest.TestCase):
     def setUp(self):

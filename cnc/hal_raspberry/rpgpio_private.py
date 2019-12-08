@@ -84,6 +84,7 @@ DMA_TI_DEST_DREQ = 1 << 6    # used in conjuction with Peripheral Mapping, 1 = t
 # PERMAP will gate the destination writes
 DMA_CS_RESET = 1 << 31    # DMA channel reset
 DMA_CS_ABORT = 1 << 30    # abort the current DMA CB
+# RECHECK THE FOLLOWING REGISTER ADDRESS:
 DMA_CS_DISDEBUG = 1 << 29    # 1 = DMA will not stop, when debug pause signal is asserted - CHANGED Max 30.11.2019
 # I think DMA_CS_DISDEBUG has been assigned to the wrong address register: 1 << 28 points to WAIT_FOR_OUTSTANDING_WRITES
 # (1) provides on page 48 the following explanation for this:

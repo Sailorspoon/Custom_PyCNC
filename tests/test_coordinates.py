@@ -3,8 +3,6 @@ import unittest
 
 from cnc.coordinates import *
 
-""" In diesem file muessen die Groessen angepasst werden """
-
 
 class TestCoordinates(unittest.TestCase):
     def setUp(self):
@@ -21,7 +19,7 @@ class TestCoordinates(unittest.TestCase):
         self.assertEqual(c.y, 2.0)
         self.assertEqual(c.z, -3.5000000009)
         self.assertEqual(c.e, 0.0)
-        self.assertEqual(c.q, 0.0)  # siehe assert in file hal_virtual
+        self.assertEqual(c.q, 0.0)  # see assert in file hal_virtual
         self.assertEqual(c.n, 0.0)
         self.assertEqual(c.a, 0.0)
         self.assertEqual(c.b, 0.0)
@@ -34,7 +32,7 @@ class TestCoordinates(unittest.TestCase):
         # aabb - Axis Aligned Bounded Box.
         # original method checks if point belongs aabb.
         p1 = Coordinates(0, 0, 0, 0, 0, 0, 0, 0)
-        p2 = Coordinates(2, 2, 2, 0, 0, 2, 0, 0)  # spaeter als neue Funktion hinzufuegen um Drehwinkel zu checken
+        p2 = Coordinates(2, 2, 2, 0, 0, 2, 0, 0)
         c = Coordinates(1, 1, 1, 0, 0, 1, 0, 0)
         self.assertTrue(c.is_in_aabb(p1, p2))
         self.assertTrue(c.is_in_aabb(p2, p1))

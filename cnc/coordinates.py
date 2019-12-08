@@ -1,6 +1,7 @@
 # Aenderung Max 29.11.2019
 from __future__ import division
-import math
+# import math
+from config import *
 
 
 class Coordinates(object):
@@ -37,18 +38,43 @@ class Coordinates(object):
         :param p1: First point in Coord object.
         :param p2: Second point in Coord object.
         :return: boolean value.
+        :pos: Indicator for position of the rotatory degree of freedom
+        for circular plate only one axis (x or y) is needed
+        for both extruder nozzles there is no maximum needed as for the rotatory
+        degree of freedom of the heating bed
         """
-        min_x, max_x = sorted((p1.x, p2.x))
-        min_y, max_y = sorted((p1.y, p2.y))
+        min_x, max_x = sorted((p1.x, p2.x))  # only one axis for radius necessary
+
         min_z, max_z = sorted((p1.z, p2.z))
-        min_n, max_n = sorted((p1.n, p2.n))  # Als Maximal/minimal ueberpruefung des Verdrehwinkels
-        min_a, max_a = sorted((p1.a, p2.a))  # Nur Kippmechanismus mit hartem Anschlag erwartet
-        if self.x < min_x or self.y < min_y or self.z < min_z or self.n < min_n or self.a < min_a:
-            return False
-        if self.x > max_x or self.y > max_y or self.z > max_z or self.n > max_n or self.a > max_a:
-            return False
-        return True
-        # Wichtig, dass zu einem spaeteren Zeitpunkt die Werte fuer p1.n und p2.n eingefuehrt werden
+        min_n, max_n = sorted((p1.n, p2.n))
+        min_a, max_a = sorted((p1.a, p2.a))
+
+        # check if FFF nozzle is at one of its two discrete positions
+        if self.n == min_n:
+            pos = 1
+        elif self.n == max_n:
+            pos = -1
+        else:
+            pos = None
+
+        # circular heating bed
+        if pos is not None:
+            if (self.x + math.copysign(distance_pivot_tool_mm, pos) + math.copysign(distance_pivot_FFF_nozzle, pos)) \
+                    ** 2 + self.y ** 2 > max_x ** 2:
+                return False
+            if self.z < min_z or self.n < min_n or self.a < min_a:
+                return False
+            if self.z > max_z or self.n > max_n or self.a > max_a:
+                return False
+            return True
+        else:
+            if self.x ** 2 + self.y ** 2 > max_x ** 2:
+                return False
+            if self.z < min_z or self.n < min_n or self.a < min_a:
+                return False
+            if self.z > max_z or self.n > max_n or self.a > max_a:
+                return False
+            return True
 
     def length(self):
         """ Calculate the length of vector.
@@ -80,7 +106,6 @@ class Coordinates(object):
                            round(self.n / base_n) * base_n,
                            round(self.a / base_a) * base_a,
                            round(self.b / base_b) * base_b)
-        # Runden der neuen Freiheitsgrade auf eine vorher festgelegte Genauigkeit (base_...)
 
     def find_max(self):
         """ Find a maximum value of all values.
@@ -89,8 +114,6 @@ class Coordinates(object):
         return max(self.x, self.y, self.z, self.e, self.q, self.n, self.a, self.b)
 
     # build in function implementation
-    """ Anpassen aller Funktionen an die neuen FHG"""
-
     def __add__(self, other):
         return Coordinates(self.x + other.x, self.y + other.y,
                            self.z + other.z, self.e + other.e,
