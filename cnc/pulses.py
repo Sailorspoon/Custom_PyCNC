@@ -319,6 +319,7 @@ class PulseGeneratorLinear(PulseGenerator):
         # and the arm lenght. This is added to the height.
         # x-axes and carriage(a) are in alignment. Carriage(b) in 120° to x-axis. carriage(c) in 240° to x-axis.
         # same formular as "start values of the carriage high" in config.py but tx, ty, tz not 0
+        # 0 equals the distance of the carriage to the y-axis
         height_carriage_mm['a'] = tu['z'] + height_pivot_tool_mm \
                                   + math.sqrt(length_arm['a'] ** 2
                                               - ((radius_heatbed - (tu['x'] + distance_pivot_tool_mm)) ** 2
