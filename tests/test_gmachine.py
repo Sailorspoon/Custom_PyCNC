@@ -1,5 +1,3 @@
-# 28.11.2019 Christian A und B Achsen eingefuegt
-# Translating comments to english Christian 09.12.2019
 import unittest
 
 from cnc.gcode import *

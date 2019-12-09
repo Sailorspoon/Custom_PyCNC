@@ -1,5 +1,3 @@
-# Aenderung Max 27.11.2019
-# Translating comments to english Christian 09.12.2019
 import os
 import fcntl
 import struct
@@ -34,6 +32,7 @@ class __I2CDev(object):
 
     def read(self, n):
         return os.read(self._dev, n)
+
 
 i2c = __I2CDev()
 

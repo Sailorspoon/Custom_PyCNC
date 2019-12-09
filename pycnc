@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import cnc.main
 
 if __name__ == "__main__":

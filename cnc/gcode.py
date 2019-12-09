@@ -1,5 +1,3 @@
-# Aenderung Max 28.11.2019
-# Translating comments to english Christian 09.12.2019
 import re
 
 from cnc.coordinates import Coordinates

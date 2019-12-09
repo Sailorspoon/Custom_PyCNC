@@ -1,4 +1,3 @@
-# Aenderung Christian 29.11.2019
 import unittest
 
 from cnc.gcode import *

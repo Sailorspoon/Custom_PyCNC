@@ -1,4 +1,3 @@
-# Aenderung Max 28.11.2019
 from __future__ import division
 
 import cnc.logging_config as logging_config
@@ -114,7 +113,7 @@ class GMachine(object):
     def __check_delta(self, delta):
         pos = self._position + delta
         if not pos.is_in_aabb(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                              Coordinates(TABLE_SIZE_RADIUS_MM, TABLE_SIZE_RADIUS_MM,  # hier nur 3D Achsen relevant
+                              Coordinates(TABLE_SIZE_RADIUS_MM, TABLE_SIZE_RADIUS_MM,  # only calibrated axis relevant
                                           TABLE_SIZE_Z_MM, 0, 0, MAX_ROTATION_N_MM, MAX_TILT_ANGLE, 0)):
             raise GMachineException("out of effective area")
 

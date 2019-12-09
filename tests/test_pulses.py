@@ -1,4 +1,3 @@
-# Aenderung Max 29.11.2019
 import unittest
 
 from cnc.pulses import *
@@ -255,7 +254,7 @@ class TestPulses(unittest.TestCase):
         # just a preliminary fix, should be rechecked later
         m = Coordinates(TABLE_SIZE_RADIUS_MM, TABLE_SIZE_RADIUS_MM, TABLE_SIZE_Z_MM,
                         100.0, 0, MAX_ROTATION_N_MM, MAX_TILT_ANGLE, 0)
-        # Falls ein maximaler verdrehwinkel des bettes feststeht, den letzten eintrag abaendern
+        # change last entry above if there is a maximum angle
         g = PulseGeneratorLinear(m, self.v)
         ix = 0
         iy = 0

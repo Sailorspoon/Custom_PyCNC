@@ -1,4 +1,3 @@
-# Aenderung Christian 29.11.2019 einfuegen der druckbettachsen als a, b Achse
 import unittest
 
 from cnc.coordinates import *

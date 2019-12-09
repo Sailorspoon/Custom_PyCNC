@@ -1,4 +1,3 @@
-# Aenderung Max 28.11.2019
 from __future__ import division
 import time
 

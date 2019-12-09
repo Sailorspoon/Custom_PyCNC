@@ -1,6 +1,3 @@
-# Aenderung Max 29.11.2019
-# Translating comments to english Christian 09.12.2019
-# coding=utf-8
 from __future__ import division
 import logging
 
@@ -181,7 +178,7 @@ class PulseGenerator(object):
                  This iteration strictly guarantees that next pulses time will
                  not be earlier in time then current. If there is no pulses
                  left StopIteration will be raised.
-                 Nachtrag - Ergaenzt für die beiden zusaetzlichen Achsen
+                 Update: Added new axis
         """
         direction, (tx, ty, tz, te, tq, tn, ta, tb) = \
             self._interpolation_function(self._iteration_x, self._iteration_y,
@@ -317,7 +314,9 @@ class PulseGeneratorLinear(PulseGenerator):
         # height_carriage_mm is a function of distance_pivot_carriage_mm
         # height carriage_mm calculated with pythagoras of distance_pivot_carriage (calculated wit tx, ty, tz)
         # and the arm lenght. This is added to the height.
-        # x-axes and carriage(a) are in alignment. Carriage(b) in 120° to x-axis. carriage(c) in 240° to x-axis.
+        # x-axes and carriage(a) are in alignment.
+        # Carriage(b) in 120 degrees to x-axis.
+        # carriage(c) in 240 degrees to x-axis.
         # same formular as "start values of the carriage high" in config.py but tx, ty, tz not 0
         # 0 equals the distance of the carriage to the y-axis
         height_carriage_mm['a'] = tu['z'] + height_pivot_tool_mm \
@@ -361,10 +360,6 @@ class PulseGeneratorLinear(PulseGenerator):
 
             velocity_mm_per_min_axis.z = velocity_mm_per_min * \
                                          (delta_mm.z / math.sqrt(delta_mm.x ** 2 + delta_mm.y ** 2 + delta_mm.z ** 2))
-
-        # logging.debug("velocity_mm_per_min_axis (x): %s" % velocity_mm_per_min_axis.x)
-        # logging.debug("velocity_mm_per_min_axis (y): %s" % velocity_mm_per_min_axis.y)
-        # logging.debug("velocity_mm_per_min_axis (z): %s" % velocity_mm_per_min_axis.z)
 
         # coupling of head velocity with koFi extrusion rate
         if delta_mm.x or delta_mm.y or delta_mm.z != 0:

@@ -1,4 +1,3 @@
-# Aenderung Max 28.11.2019
 import time
 
 from cnc.hal_raspberry import rpgpio
