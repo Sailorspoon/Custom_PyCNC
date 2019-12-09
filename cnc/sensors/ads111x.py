@@ -1,4 +1,5 @@
 # Aenderung Max 27.11.2019
+# Translating comments to english Christian 09.12.2019
 import os
 import fcntl
 import struct
@@ -6,7 +7,7 @@ import time
 import atexit
 import threading
 
-""" Hier die Adresse des multiplexfaehigen A/D Wandlers angeben"""
+# Insert the adress of the multiplexable A/D converter
 ADS111x_ADDRESS = 0x48
 I2C_SLAVE = 0x0703
 

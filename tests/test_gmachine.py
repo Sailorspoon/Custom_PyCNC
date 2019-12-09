@@ -1,4 +1,5 @@
 # 28.11.2019 Christian A und B Achsen eingefuegt
+# Translating comments to english Christian 09.12.2019
 import unittest
 
 from cnc.gcode import *
@@ -111,9 +112,8 @@ class TestGMachine(unittest.TestCase):
     #     self.assertRaises(GMachineException, m.do_command, GCode.parse_line(s))
     #     PulseGenerator.AUTO_VELOCITY_ADJUSTMENT = True
     #     m.do_command(GCode.parse_line("G1X10Y10Z10F9999999999999999999"))
-    #     # m.do_command(GCode.parse_line("G2I0.1F9999999999999999999"))
-    #     # m.do_command(GCode.parse_line("G2I10F9999999999999999999"))
-    #     # Spaeter checken ob es hier einen Error gibt, ggf ergaenzen
+    #     m.do_command(GCode.parse_line("G2I0.1F9999999999999999999"))
+    #     m.do_command(GCode.parse_line("G2I10F9999999999999999999"))
     #     PulseGenerator.AUTO_VELOCITY_ADJUSTMENT = AUTO_VELOCITY_ADJUSTMENT
 
     def test_g2_g3(self):
@@ -243,7 +243,7 @@ class TestGMachine(unittest.TestCase):
 
     # spindle is not used - commented out
     # def test_m3_m5(self):
-    #     # testing the spindle system
+    #     testing the spindle system
     #     m = GMachine()
     #     m.do_command(GCode.parse_line("M3S" + str(SPINDLE_MAX_RPM)))
     #     self.assertRaises(GMachineException,

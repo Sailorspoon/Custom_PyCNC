@@ -1,4 +1,5 @@
 # Aenderung Max 29.11.2019
+# Translating comments to english Christian 09.12.2019
 # coding=utf-8
 from __future__ import division
 import logging
@@ -96,7 +97,7 @@ class PulseGenerator(object):
         :param iy: number of pulse for Y axis.
         :param iz: number of pulse for Z axis.
         :param ie: number of pulse for E axis.
-        :param iq: number of pulses for koFi Extruder
+        :param iq: number of pulses for koFi extruder
         :param i_n: number of pulses for rotatory degree of freedom
         :param ia: number of pulses for tilting bed
         :param ib: number of pulses for rotary degree of freedom
@@ -215,7 +216,7 @@ class PulseGenerator(object):
 
         # convert to real time
         m = None
-        for i in (tx, ty, tz, te, tq, tn, ta, tb):  # Ergaenzt um Zeiten für die weiteren FHGe
+        for i in (tx, ty, tz, te, tq, tn, ta, tb):  # Adding time for each degree of freedom
             if i is not None and (m is None or i < m):
                 m = i
         am = self._to_accelerated_time(m)
@@ -315,7 +316,7 @@ class PulseGeneratorLinear(PulseGenerator):
 
         # height_carriage_mm is a function of distance_pivot_carriage_mm
         # height carriage_mm calculated with pythagoras of distance_pivot_carriage (calculated wit tx, ty, tz)
-        #       and the arm lenght. This is added to the height.
+        # and the arm lenght. This is added to the height.
         # x-axes and carriage(a) are in alignment. Carriage(b) in 120° to x-axis. carriage(c) in 240° to x-axis.
         # same formular as "start values of the carriage high" in config.py but tx, ty, tz not 0
         height_carriage_mm['a'] = tu['z'] + height_pivot_tool_mm \
@@ -841,8 +842,7 @@ class PulseGeneratorCircular(PulseGenerator):
 
     def _interpolation_function(self, ix, iy, iz, ie, iq, i_n, ia, ib):
         """ Calculate interpolation values for linear movement, see super class
-            for details. Ergaenzung um weitere Achsen wird hinten angestellt -
-            Output und Verarbeitung muss sonst noch ergaenzt werden
+            for details.
         """
         if self._plane == PLANE_XY:
             dx, tx = self.__circular_ac(ix, STEPPER_PULSES_PER_MM_X)

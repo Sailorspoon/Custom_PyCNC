@@ -1,4 +1,5 @@
 # Aenderung Max 29.11.2019
+# Translating comments to english Christian 09.12.2019
 from __future__ import division
 # import math
 from config import *
@@ -19,10 +20,10 @@ class Coordinates(object):
         self.y = round(y, 10)
         self.z = round(z, 10)
         self.e = round(e, 10)
-        self.q = round(q, 10)  # Einfuegen der anderen FHG
-        self.n = round(n, 10)  # Einfuegen der anderen FHG
-        self.a = round(a, 10)
-        self.b = round(b, 10)
+        self.q = round(q, 10)    # Adding new degress of freedom for koFi extrusion
+        self.n = round(n, 10)    # Adding new degress of freedom for the retaining device
+        self.a = round(a, 10)    # Adding new degress of freedom for heat bed tilt
+        self.b = round(b, 10)    # Adding new degress of freedom for heat bed rotation
 
     def is_zero(self):
         """ Check if all coordinates are zero.
@@ -57,7 +58,7 @@ class Coordinates(object):
         else:
             pos = None
 
-        # circular heating bed
+        # circular heat bed
         if pos is not None:
             if (self.x + math.copysign(distance_pivot_tool_mm, pos) + math.copysign(distance_pivot_FFF_nozzle, pos)) \
                     ** 2 + self.y ** 2 > max_x ** 2:
@@ -79,8 +80,6 @@ class Coordinates(object):
     def length(self):
         """ Calculate the length of vector.
         :return: Vector length.
-         Vermututng: 4D Raum mit der Bewegung aller Motoren, Hinzufuegen der neuen
-        Freiheitsgrade und die Ansteuerung ihrer Motoren
         """
         return math.sqrt(self.x * self.x + self.y * self.y + self.z * self.z
                          + self.e * self.e + self.q * self.q + self.n * self.n + self.a * self.a + self.b * self.b)
@@ -91,12 +90,11 @@ class Coordinates(object):
         :param base_y: Base for y axis.
         :param base_z: Base for z axis.
         :param base_e: Base for e axis.
-        :param base_q: Basis fuer q Freiheitsgrad
-        :param base_n: Basis fuer n Freiheitsgrad
-        :param base_a: Basis fuer a Freiheitsgrad
-        :param base_b: Basis fuer b Freiheitsgrad
+        :param base_q: Base for q axis
+        :param base_n: Base for n axis
+        :param base_a: Base for a axis
+        :param base_b: Base for b axis
         :return: New rounded object.
-        Ergaenzt um alle FHGe
         """
         return Coordinates(round(self.x / base_x) * base_x,
                            round(self.y / base_y) * base_y,

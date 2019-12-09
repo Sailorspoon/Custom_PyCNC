@@ -1,4 +1,5 @@
 # Aenderung Max 28.11.2019
+# Translating comments to english Christian 09.12.2019
 import re
 
 from cnc.coordinates import Coordinates
@@ -51,8 +52,8 @@ class GCode(object):
         :return: Coord object.
         E: FFF extruder
         Q: koFi extruder
-        A: Tilting heating bed
-        B: rotation of heating bed
+        A: Tilting heat bed
+        B: rotation of heat bed
         """
         x = self.get('X', default.x, multiply)
         y = self.get('Y', default.y, multiply)
