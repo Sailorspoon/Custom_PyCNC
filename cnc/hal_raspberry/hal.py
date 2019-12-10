@@ -50,28 +50,15 @@ def init():
     gpio.init(ENDSTOP_PIN_Y, rpgpio.GPIO.MODE_INPUT_PULLUP)
     gpio.init(ENDSTOP_PIN_Z, rpgpio.GPIO.MODE_INPUT_PULLUP)
 
-    gpio.init(SPINDLE_PWM_PIN, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(FAN_PIN, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(EXTRUDER_HEATER_PIN, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(BED_HEATER_PIN, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPERS_ENABLE_PIN, rpgpio.GPIO.MODE_OUTPUT)
-    gpio.clear(SPINDLE_PWM_PIN)
     gpio.clear(FAN_PIN)
     gpio.clear(EXTRUDER_HEATER_PIN)
     gpio.clear(BED_HEATER_PIN)
     gpio.clear(STEPPERS_ENABLE_PIN)
     watchdog.start()
-
-
-def spindle_control(percent):
-    """ Spindle control implementation.
-    :param percent: spindle speed in percent 0..100. If 0, stop the spindle.
-    """
-    logging.info("spindle control: {}%".format(percent))
-    if percent > 0:
-        pwm.add_pin(SPINDLE_PWM_PIN, percent)
-    else:
-        pwm.remove_pin(SPINDLE_PWM_PIN)
 
 
 def fan_control(on_off):
@@ -129,7 +116,7 @@ def disable_steppers():
 
 
 def __calibrate_private(x, y, z, invert):
-    """ Has to be changed later to support all axis, which need calibration"""
+    # Has to be changed later to support all axis, which need calibration
     if invert:
         stepper_inverted_x = not STEPPER_INVERTED_X
         stepper_inverted_y = not STEPPER_INVERTED_Y
@@ -370,7 +357,6 @@ def deinit():
     join()
     disable_steppers()
     pwm.remove_all()
-    gpio.clear(SPINDLE_PWM_PIN)
     gpio.clear(FAN_PIN)
     gpio.clear(EXTRUDER_HEATER_PIN)
     gpio.clear(BED_HEATER_PIN)

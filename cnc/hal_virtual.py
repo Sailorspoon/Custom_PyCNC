@@ -15,13 +15,6 @@ def init():
     logging.info("initialize hal")
 
 
-def spindle_control(percent):
-    """ Spindle control implementation 0..100.
-    :param percent: Spindle speed in percent.
-    """
-    logging.info("spindle control: {}%".format(percent))
-
-
 def fan_control(on_off):
     """Cooling fan control.
     :param on_off: boolean value if fan is enabled.

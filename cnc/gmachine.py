@@ -36,7 +36,6 @@ class GMachine(object):
         self._position = Coordinates(0.0, 0.0, TABLE_SIZE_Z_MM, 0.0, 0.0, 0.0, 0.0, 0.0)
         # init variables
         self._velocity = 0
-        self._spindle_rpm = 0
         self._local = None
         self._convertCoordinates = 0
         self._absoluteCoordinates = 0
@@ -50,7 +49,6 @@ class GMachine(object):
     def release(self):
         """ Free all resources.
         """
-        self._spindle(0)
         for h in self._heaters:
             self._heaters[h].stop()
         self._fan(False)
@@ -67,17 +65,10 @@ class GMachine(object):
                              MAX_VELOCITY_MM_PER_MIN_N,
                              MAX_VELOCITY_MM_PER_MIN_A,
                              MAX_VELOCITY_MM_PER_MIN_B)
-        self._spindle_rpm = 1000
         self._local = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         self._convertCoordinates = 1.0
         self._absoluteCoordinates = True
         self._plane = PLANE_XY
-
-    # noinspection PyMethodMayBeStatic
-    def _spindle(self, spindle_speed):
-        """ function is not deleted in case it will be used or repurposed lateron"""
-        hal.join()
-        hal.spindle_control(100.0 * spindle_speed / SPINDLE_MAX_RPM)
 
     def _fan(self, state):
         hal.fan_control(state)
@@ -150,141 +141,6 @@ class GMachine(object):
         # save position
         self._position = self._position + delta
 
-    @staticmethod
-    def __quarter(pa, pb):
-        if pa >= 0 and pb >= 0:
-            return 1
-        if pa < 0 and pb >= 0:
-            return 2
-        if pa < 0 and pb < 0:
-            return 3
-        if pa >= 0 and pb < 0:
-            return 4
-
-    def __adjust_circle(self, da, db, ra, rb, direction, pa, pb, ma, mb):
-        r = math.sqrt(ra * ra + rb * rb)
-        if r == 0:
-            raise GMachineException("circle radius is zero")
-        sq = self.__quarter(-ra, -rb)
-        if da == 0 and db == 0:  # full circle
-            ea = da
-            eb = db
-            eq = 5  # mark as non-existing to check all
-        else:
-            if da - ra == 0:
-                ea = 0
-            else:
-                b = (db - rb) / (da - ra)
-                ea = math.copysign(math.sqrt(r * r / (1.0 + abs(b))), da - ra)
-            eb = math.copysign(math.sqrt(r * r - ea * ea), db - rb)
-            eq = self.__quarter(ea, eb)
-            ea += ra
-            eb += rb
-        # iterate coordinates quarters and check if we fit table
-        q = sq
-        pq = q
-        for _ in range(0, 4):
-            if direction == CW:
-                q -= 1
-            else:
-                q += 1
-            if q <= 0:
-                q = 4
-            elif q >= 5:
-                q = 1
-            if q == eq:
-                break
-            is_raise = False
-            if (pq == 1 and q == 4) or (pq == 4 and q == 1):
-                is_raise = (pa + ra + r > ma)
-            elif (pq == 1 and q == 2) or (pq == 2 and q == 1):
-                is_raise = (pb + rb + r > mb)
-            elif (pq == 2 and q == 3) or (pq == 3 and q == 2):
-                is_raise = (pa + ra - r < 0)
-            elif (pq == 3 and q == 4) or (pq == 4 and q == 3):
-                is_raise = (pb + rb - r < 0)
-            if is_raise:
-                raise GMachineException("out of effective area")
-            pq = q
-        return ea, eb
-
-    def _move_circular(self, delta, radius, velocity, direction):
-        delta = delta.round(1.0 / STEPPER_PULSES_PER_MM_X,
-                            1.0 / STEPPER_PULSES_PER_MM_Y,
-                            1.0 / STEPPER_PULSES_PER_MM_Z,
-                            1.0 / STEPPER_PULSES_PER_MM_E,
-                            1.0 / STEPPER_PULSES_PER_MM_Q,
-                            1.0 / STEPPER_PULSES_PER_MM_N,
-                            1.0 / STEPPER_PULSES_PER_MM_A,
-                            1.0 / STEPPER_PULSES_PER_MM_B)
-        radius = radius.round(1.0 / STEPPER_PULSES_PER_MM_X,
-                              1.0 / STEPPER_PULSES_PER_MM_Y,
-                              1.0 / STEPPER_PULSES_PER_MM_Z,
-                              1.0 / STEPPER_PULSES_PER_MM_E,
-                              1.0 / STEPPER_PULSES_PER_MM_Q,
-                              1.0 / STEPPER_PULSES_PER_MM_N,
-                              1.0 / STEPPER_PULSES_PER_MM_A,
-                              1.0 / STEPPER_PULSES_PER_MM_B)
-        self.__check_delta(delta)
-        # get delta vector and put it on circle
-        circle_end = Coordinates(0, 0, 0, 0, 0, 0, 0, 0)
-        if self._plane == PLANE_XY:
-            # IMPORTANT: TABLE_SIZE_RADIUS_MM is just a prliminary adjustment since
-            # circular movement is not utilized by any current slicer for 3D printing
-            # IF THIS FUNCTION IS TO BE USED, CHECK FIRST IF THERE ARE ANY ADJUSTMENTS NECESSARY
-            circle_end.x, circle_end.y = \
-                self.__adjust_circle(delta.x, delta.y, radius.x, radius.y,
-                                     direction, self._position.x,
-                                     self._position.y, TABLE_SIZE_RADIUS_MM,
-                                     TABLE_SIZE_RADIUS_MM)
-            circle_end.z = delta.z
-        elif self._plane == PLANE_YZ:
-            circle_end.y, circle_end.z = \
-                self.__adjust_circle(delta.y, delta.z, radius.y, radius.z,
-                                     direction, self._position.y,
-                                     self._position.z, TABLE_SIZE_RADIUS_MM,
-                                     TABLE_SIZE_Z_MM)
-            circle_end.x = delta.x
-        elif self._plane == PLANE_ZX:
-            circle_end.z, circle_end.x = \
-                self.__adjust_circle(delta.z, delta.x, radius.z, radius.x,
-                                     direction, self._position.z,
-                                     self._position.x, TABLE_SIZE_Z_MM,
-                                     TABLE_SIZE_RADIUS_MM)
-            circle_end.y = delta.y
-        circle_end.e = delta.e
-        circle_end.q = delta.q
-        circle_end.a = delta.a
-        circle_end.b = delta.b
-        circle_end = circle_end.round(1.0 / STEPPER_PULSES_PER_MM_X,
-                                      1.0 / STEPPER_PULSES_PER_MM_Y,
-                                      1.0 / STEPPER_PULSES_PER_MM_Z,
-                                      1.0 / STEPPER_PULSES_PER_MM_E,
-                                      1.0 / STEPPER_PULSES_PER_MM_Q,
-                                      1.0 / STEPPER_PULSES_PER_MM_N,
-                                      1.0 / STEPPER_PULSES_PER_MM_A,
-                                      1.0 / STEPPER_PULSES_PER_MM_B)
-        logging.info("Moving circularly {} {} {} with radius {}"
-                     " and velocity {}".format(self._plane, circle_end,
-                                               direction, radius, velocity))
-        gen = PulseGeneratorCircular(circle_end, radius, self._plane,
-                                     direction, velocity)
-        self.__check_velocity(gen.max_velocity())
-        # if finish coords is not on circle, move some distance linearly
-        linear_delta = delta - circle_end
-        linear_gen = None
-        if not linear_delta.is_zero():
-            logging.info("Moving additionally {} to finish circle command".
-                         format(linear_delta))
-            linear_gen = PulseGeneratorLinear(linear_delta, velocity)
-            self.__check_velocity(linear_gen.max_velocity())
-        # do movements
-        hal.move(gen)
-        if linear_gen is not None:
-            hal.move(linear_gen)
-        # save position
-        self._position = self._position + circle_end + linear_delta
-
     def safe_zero(self, x=True, y=True, z=True, n=True, a=True):
         """ Move head to zero position safely.
         :param x: boolean, move X axis to zero
@@ -348,13 +204,6 @@ class GMachine(object):
         """
         hal.join()
         return self._position
-
-    def plane(self):
-        """ Return current plane for circular interpolation. This function for
-            tests only.
-            :return current plane.
-        """
-        return self._plane
 
     def fan_state(self):
         """ Check if fan is on.
@@ -447,9 +296,9 @@ class GMachine(object):
         elif c == 'G1':  # linear interpolation
             self._move_linear(delta, velocity)
         elif c == 'G2':  # circular interpolation, clockwise
-            self._move_circular(delta, radius, velocity, CW)
+            raise NotImplemented
         elif c == 'G3':  # circular interpolation, counterclockwise
-            self._move_circular(delta, radius, velocity, CCW)
+            raise NotImplemented
         elif c == 'G4':  # delay in s
             if not gcode.has('P'):
                 raise GMachineException("P is not specified")
@@ -500,13 +349,9 @@ class GMachine(object):
             else:
                 self._local = self._position
         elif c == 'M3':  # spindle on
-            spindle_rpm = gcode.get('S', self._spindle_rpm)
-            if spindle_rpm < 0 or spindle_rpm > SPINDLE_MAX_RPM:
-                raise GMachineException("bad spindle speed")
-            self._spindle(spindle_rpm)
-            self._spindle_rpm = spindle_rpm
+            raise NotImplemented
         elif c == 'M5':  # spindle off
-            self._spindle(0)
+            raise NotImplemented
         elif c == 'M2' or c == 'M30':  # program finish, reset everything.
             self.reset()
         elif c == 'M84':  # disable motors

@@ -72,18 +72,6 @@ class GCode(object):
                or 'E' in self.params or 'Q' in self.params or 'N' in self.params \
             or 'A' in self.params or 'B' in self.params
 
-    def radius(self, default, multiply):
-        """ Get radius for circular interpolation(I, J, K or R).
-        :param default: Default values, if any of coords is not specified.
-        :param multiply: If value exist, multiply it by this value.
-        :return: Coord object.
-        This function is currently not in use
-        """
-        i = self.get('I', default.x, multiply)
-        j = self.get('J', default.y, multiply)
-        k = self.get('K', default.z, multiply)
-        return Coordinates(i, j, k, 0, 0, 0, 0, 0)
-
     def command(self):
         """ Get value from gcode line.
         :return: String with command or None if no command specified.

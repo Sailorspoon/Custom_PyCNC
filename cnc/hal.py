@@ -9,8 +9,6 @@ except ImportError:
 # check if all methods that is needed is implemented
 if 'init' not in locals():
     raise NotImplementedError("hal.init() not implemented")
-if 'spindle_control' not in locals():
-    raise NotImplementedError("hal.spindle_control() not implemented")
 if 'fan_control' not in locals():
     raise NotImplementedError("hal.fan_control() not implemented")
 if 'extruder_heater_control' not in locals():
