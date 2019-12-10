@@ -273,8 +273,6 @@ class GMachine(object):
             delta = gcode.coordinates(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
                                       self._convertCoordinates)
         velocity = gcode.get('F', self._velocity)
-        radius = gcode.radius(Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                              self._convertCoordinates)
         # check parameters
         if velocity < MIN_VELOCITY_MM_PER_MIN:
             raise GMachineException("feed speed too low")
@@ -296,9 +294,9 @@ class GMachine(object):
         elif c == 'G1':  # linear interpolation
             self._move_linear(delta, velocity)
         elif c == 'G2':  # circular interpolation, clockwise
-            raise NotImplemented
+            raise GMachineException("G2 not implemented")
         elif c == 'G3':  # circular interpolation, counterclockwise
-            raise NotImplemented
+            raise GMachineException("G3 not implemented")
         elif c == 'G4':  # delay in s
             if not gcode.has('P'):
                 raise GMachineException("P is not specified")
@@ -349,9 +347,9 @@ class GMachine(object):
             else:
                 self._local = self._position
         elif c == 'M3':  # spindle on
-            raise NotImplemented
+            raise GMachineException("M3 not implemented")
         elif c == 'M5':  # spindle off
-            raise NotImplemented
+            raise GMachineException("M5 not implemented")
         elif c == 'M2' or c == 'M30':  # program finish, reset everything.
             self.reset()
         elif c == 'M84':  # disable motors
