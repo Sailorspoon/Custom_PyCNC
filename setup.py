@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 try:
     import pypandoc
     long_description = pypandoc.convert('README.md', 'rst')
