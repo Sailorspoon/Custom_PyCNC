@@ -21,7 +21,7 @@ tu = {'x': 0, 'y': 0, 'z': 455}  # starting position for tool --> home
 TABLE_SIZE_Z_MM = 455
 TABLE_SIZE_RADIUS_MM = 180
 MAX_ROTATION_N_MM = 360
-MAX_TILT_ANGLE = 100
+MAX_TILT_ANGLE = 90
 # no maximum for rotatory degree of freedom of the heating bed
 
 # start values of the carriage high:
@@ -67,8 +67,8 @@ STEPPER_PULSES_PER_MM_Z = 100
 STEPPER_PULSES_PER_MM_E = 150
 STEPPER_PULSES_PER_MM_Q = 100
 STEPPER_PULSES_PER_MM_N = 80
-STEPPER_PULSES_PER_MM_A = 100
-STEPPER_PULSES_PER_MM_B = 100
+STEPPER_PULSES_PER_MM_A = 444  # 1/16 microstepping, 1:50 Getriebe, 1.8° 
+STEPPER_PULSES_PER_MM_B = 356 # 1/16 microstepping, 1:10 Getriebe, 1.8°, 1:4 Zahnriemen
 
 # Invert axises direction, by default(False) high level means increase of
 # position. For inverted(True) axis, high level means decrease of position.
@@ -84,9 +84,10 @@ STEPPER_INVERTED_B = False
 # Invert zero end stops switches. By default(False) low level on input pin
 # means that axis in zero position. For inverted(True) end stops, high level
 # means zero position.
-ENDSTOP_INVERTED_X = True
-ENDSTOP_INVERTED_Y = True
+ENDSTOP_INVERTED_X = False
+ENDSTOP_INVERTED_Y = False
 ENDSTOP_INVERTED_Z = False  # Auto leveler
+ENDSTOP_INVERTED_A = False
 
 # Mixed settings.
 STEPPER_PULSE_LENGTH_US = 2
@@ -127,7 +128,7 @@ STEPPER_DIR_PIN_N = 5
 STEPPER_DIR_PIN_A = 23
 STEPPER_DIR_PIN_B = 4
 
-FAN_PIN = 27
+#FAN_PIN = 27
 EXTRUDER_HEATER_PIN = 18
 BED_HEATER_PIN = 22
 EXTRUDER_TEMPERATURE_SENSOR_CHANNEL = 2
@@ -136,6 +137,7 @@ BED_TEMPERATURE_SENSOR_CHANNEL = 1
 ENDSTOP_PIN_X = 24
 ENDSTOP_PIN_Y = 9
 ENDSTOP_PIN_Z = 11
+ENDSTOP_PIN_A = 27 #Alter Pin von fan 
 
 # -----------------------------------------------------------------------------
 #  Behavior config
