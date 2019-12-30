@@ -55,7 +55,7 @@ def init():
     gpio.init(EXTRUDER_HEATER_PIN, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(BED_HEATER_PIN, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPERS_ENABLE_PIN, rpgpio.GPIO.MODE_OUTPUT)
-    gpio.clear(FAN_PIN)
+    # gpio.clear(FAN_PIN)
     gpio.clear(EXTRUDER_HEATER_PIN)
     gpio.clear(BED_HEATER_PIN)
     gpio.clear(STEPPERS_ENABLE_PIN)
@@ -69,10 +69,10 @@ def fan_control(on_off):
     """
     if on_off:
         logging.info("Fan is on")
-        gpio.set(FAN_PIN)
+        # gpio.set(FAN_PIN)
     else:
         logging.info("Fan is off")
-        gpio.clear(FAN_PIN)
+        # gpio.clear(FAN_PIN)
 
 
 def extruder_heater_control(percent):
@@ -370,7 +370,7 @@ def deinit():
     join()
     disable_steppers()
     pwm.remove_all()
-    gpio.clear(FAN_PIN)
+    # gpio.clear(FAN_PIN)
     gpio.clear(EXTRUDER_HEATER_PIN)
     gpio.clear(BED_HEATER_PIN)
     watchdog.stop()
