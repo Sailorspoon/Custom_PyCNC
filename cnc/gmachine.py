@@ -322,7 +322,7 @@ class GMachine(object):
                 axises = True, True, True, True, True
             self.safe_zero(*axises)
             hal.join()
-            if not hal.calibrate(gcode.has('X'), gcode.has('Y'), True, True):
+            if not hal.calibrate(gcode.has('X'), gcode.has('Y'), True):
             	print("calibrate failed")
                 raise GMachineException("failed to calibrate")
         elif c == 'G53':  # switch to machine coords
@@ -405,6 +405,8 @@ class GMachine(object):
         elif c == 'M83':  # relative mode for extruder
             if self._absoluteCoordinates:
                 raise GMachineException("Not supported, use G90/G91")
+        elif c == 'G93'
+        	homingtable
         else:
             raise GMachineException("unknown command")
         # save parameters on success
