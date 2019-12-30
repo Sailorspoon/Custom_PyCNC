@@ -50,7 +50,7 @@ class GCode(object):
         :return: Coord object.
         E: FFF extruder
         Q: koFi extruder
-	N: move Nozzle
+	    N: move Nozzle
         A: Tilting heat bed
         B: rotation of heat bed
         """
