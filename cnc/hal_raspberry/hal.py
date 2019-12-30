@@ -162,12 +162,13 @@ def __calibrate_private(x, y, z, a, invert):
         max_size = max(max_size, TABLE_SIZE_Z_MM * STEPPER_PULSES_PER_MM_Z)
     if a:
         pins |= STEP_PIN_MASK_A
-        max_size = max(max_size, MAX_TILT_ANGLE * STEPPER_PULSES_PER_MM_A)
+
+        # max_size = max(max_size, MAX_TILT_ANGLE * STEPPER_PULSES_PER_MM_A)
 
     pulses_per_mm_avg = (STEPPER_PULSES_PER_MM_X + STEPPER_PULSES_PER_MM_Y
                          + STEPPER_PULSES_PER_MM_Z) / 3.0
     pulses_per_sec = CALIBRATION_VELOCITY_MM_PER_MIN / 60.0 * pulses_per_mm_avg
-    end_time = time.time() + 1.2 * max_size / pulses_per_sec
+    end_time = time.time() + 1.2 * max_size / pulses_per_sec 
     delay = int(1000000 / pulses_per_sec)
     last_pins = ~pins
     while time.time() < end_time:

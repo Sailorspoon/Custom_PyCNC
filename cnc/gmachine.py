@@ -322,7 +322,7 @@ class GMachine(object):
                 axises = True, True, True, True, True
             self.safe_zero(*axises)
             hal.join()
-            if not hal.calibrate(gcode.has('X'), gcode.has('Y'), True):
+            if not hal.calibrate(gcode.has('X'), gcode.has('Y'), True, True):
             	print("calibrate failed")
                 raise GMachineException("failed to calibrate")
         elif c == 'G53':  # switch to machine coords
