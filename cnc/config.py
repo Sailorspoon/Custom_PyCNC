@@ -67,8 +67,8 @@ STEPPER_PULSES_PER_MM_Z = 100
 STEPPER_PULSES_PER_MM_E = 150
 STEPPER_PULSES_PER_MM_Q = 100
 STEPPER_PULSES_PER_MM_N = 80
-STEPPER_PULSES_PER_MM_A = 444  # 1/16 microstepping, 1:50 Getriebe, 1.8° 
-STEPPER_PULSES_PER_MM_B = 356 # 1/16 microstepping, 1:10 Getriebe, 1.8°, 1:4 Zahnriemen
+STEPPER_PULSES_PER_MM_A = 444  # 1/16 microstepping, 1:50 Getriebe, 1.8deg
+STEPPER_PULSES_PER_MM_B = 356 # 1/16 microstepping, 1:10 Getriebe, 1.8deg, 1:4 Zahnriemen
 
 # Invert axises direction, by default(False) high level means increase of
 # position. For inverted(True) axis, high level means decrease of position.
@@ -128,7 +128,7 @@ STEPPER_DIR_PIN_N = 5
 STEPPER_DIR_PIN_A = 23
 STEPPER_DIR_PIN_B = 4
 
-#FAN_PIN = 27
+# FAN_PIN = 27
 EXTRUDER_HEATER_PIN = 18
 BED_HEATER_PIN = 22
 EXTRUDER_TEMPERATURE_SENSOR_CHANNEL = 2
