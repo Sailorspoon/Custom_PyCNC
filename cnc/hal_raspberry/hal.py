@@ -214,7 +214,7 @@ def __calibrate_private(x, y, z, a, invert):
     return False
 
 
-def calibrate(x, y, z):
+def calibrate(x, y, z, a):
     """ Move head to home position till end stop switch will be triggered.
     Do not return till all procedures are completed.
     :param x: boolean, True to calibrate X axis.
