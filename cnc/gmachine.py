@@ -7,6 +7,7 @@ from cnc.coordinates import *
 from cnc.heater import *
 from cnc.enums import *
 from cnc.watchdog import *
+from cnc.hal_raspberry.hal import gpio
 import math
 
 coord = None
@@ -34,7 +35,7 @@ class GMachine(object):
             Starting postion is at the top of the printer
         """
         # self._position = Coordinates(0.0, 0.0, TABLE_SIZE_Z_MM, 0.0, 0.0, 0.0, 0.0, 0.0)
-        self._position = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0) # Da Druckkopf runter wandert
+        self._position = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0) # Da Druckkopf runter wandert wenn die Motoren abgeschaltet sind
         # init variables
         self._velocity = 0
         self._local = None

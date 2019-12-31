@@ -174,7 +174,7 @@ def __calibrate_private(x, y, z, invert):
         x_endstop = (STEP_PIN_MASK_X & pins) != 0
         y_endstop = (STEP_PIN_MASK_Y & pins) != 0
         z_endstop = (STEP_PIN_MASK_Z & pins) != 0
-        a_endstop = (STEP_PIN_MASK_A & pins) != 0
+        # a_endstop = (STEP_PIN_MASK_A & pins) != 0
         # read each sensor three time
         for _ in range(0, 3):
             x_endstop = x_endstop and ((gpio.read(ENDSTOP_PIN_X) == 1)
