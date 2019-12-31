@@ -407,10 +407,10 @@ class GMachine(object):
             if self._absoluteCoordinates:
                 raise GMachineException("Not supported, use G90/G91")
         elif c == 'G93':  # in 0.01 grad Schritten richtung Endstopp, wenn Endstopp erreicht 
-        	print("Homing A Axis") 
-        	self._absoluteCoordinates = False
-        	# self._position.a = 90.0
-            while gpio.read(ENDSTOP_PIN_X) == 0 :
+            print("Homing A Axis") 
+            self._absoluteCoordinates = False
+            # self._position.a = 90.0
+            while gpio.read(ENDSTOP_PIN_X) == 0:
             	d = Coordinates(0, 0, 0, 0, 0, 0, -0.01, 0)
             	logging.debug("self_position (a): %s" % self._position.a)
             	self._move_linear(d, MAX_VELOCITY_MM_PER_MIN_A)

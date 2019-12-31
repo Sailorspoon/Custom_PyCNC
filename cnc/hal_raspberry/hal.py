@@ -379,5 +379,3 @@ def watchdog_feed():
     """ Feed hardware watchdog.
     """
     watchdog.feed()
-
-def hometable():
