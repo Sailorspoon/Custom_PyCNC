@@ -410,8 +410,9 @@ class GMachine(object):
         elif c == 'G93':  # in 0.01 grad Schritten richtung Endstopp, wenn Endstopp erreicht 
             print("Homing A Axis") 
             self._absoluteCoordinates = False
-            # self._position.a = 90.0
-            while gpio.read(ENDSTOP_PIN_X) == 0:
+            self._position.a = 90.0
+            while gpio.read(ENDSTOP_PIN_A) == 0:
+		logging.debug("enter loop")
             	d = Coordinates(0, 0, 0, 0, 0, 0, -0.01, 0)
             	logging.debug("self_position (a): %s" % self._position.a)
             	self._move_linear(d, MAX_VELOCITY_MM_PER_MIN_A)
@@ -419,8 +420,10 @@ class GMachine(object):
             self._position.a = 0.0
             print("self_position (a): %s" % self._position.a)
             self._absoluteCoordinates = True
+            print("absoluteCorrdinates")
             d = Coordinates(0, 0, 0, 0, 0, 0, 45, 0)
             self._move_linear(d, MAX_VELOCITY_MM_PER_MIN_A)
+	    print("ende")
 
         else:
             raise GMachineException("unknown command")
