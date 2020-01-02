@@ -232,10 +232,10 @@ def calibrate(x, y, z):
 def __calibrate_private_a(a, invert):
     # Has to be changed later to support all axis, which need calibration
     if invert:
-        stepper_inverted_a = not STEPPER_INVERTED_A
+        stepper_inverted_a = STEPPER_INVERTED_A
         endstop_inverted_a = not ENDSTOP_INVERTED_A
     else:
-        stepper_inverted_a = STEPPER_INVERTED_A
+        stepper_inverted_a = not STEPPER_INVERTED_A
         endstop_inverted_a = ENDSTOP_INVERTED_A
     if stepper_inverted_a:
         gpio.clear(STEPPER_DIR_PIN_A)

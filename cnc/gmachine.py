@@ -409,6 +409,9 @@ class GMachine(object):
                 raise GMachineException("Not supported, use G90/G91")
         elif c == 'G93':  # in 0.01 grad Schritten richtung Endstopp, wenn Endstopp erreicht 
             hal.calibrate_a(True)
+            self._position.a = 0.0
+            delta.a = 45
+            self._move_linear(delta, MAX_VELOCITY_MM_PER_MIN_A)
 	    '''
             print("Homing A Axis") 
             # self._absoluteCoordinates = False
