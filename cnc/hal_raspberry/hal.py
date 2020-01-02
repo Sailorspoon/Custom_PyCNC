@@ -229,6 +229,92 @@ def calibrate(x, y, z):
     return __calibrate_private(x, y, z, False)  # move to endstop switch
 
 
+def __calibrate_private_a(a, invert):
+    # Has to be changed later to support all axis, which need calibration
+    if invert:
+        endstop_inverted_a = not ENDSTOP_INVERTED_A
+    else:
+        endstop_inverted_a = ENDSTOP_INVERTED_A
+    if stepper_inverted_a:
+        gpio.clear(STEPPER_DIR_PIN_A)
+    else:
+        gpio.set(STEPPER_DIR_PIN_A)
+    pins = 0
+    max_size = 0
+    # check later, if x and y are probed independently (good -> no changes necessary),
+    # or after the x probe, the y follows immediately (bad -> outside of heating bed)
+    if a:
+        pins |= STEP_PIN_MASK_A
+        # max_size = max(max_size, TABLE_SIZE_Z_MM * STEPPER_PULSES_PER_MM_Z)
+        max_size = max(max_size, MAX_TILT_ANGLE * STEPPER_PULSES_PER_MM_A)
+
+    pulses_per_mm_avg = (STEPPER_PULSES_PER_MM_X + STEPPER_PULSES_PER_MM_Y
+                         + STEPPER_PULSES_PER_MM_Z) / 3.0
+    pulses_per_sec = CALIBRATION_VELOCITY_MM_PER_MIN / 60.0 * pulses_per_mm_avg
+    end_time = time.time() + 1.2 * max_size / pulses_per_sec 
+    delay = int(1000000 / pulses_per_sec)
+    last_pins = ~pins
+    while time.time() < end_time:
+        # check each axis end stop twice
+        # x_endstop = (STEP_PIN_MASK_X & pins) != 0
+        # y_endstop = (STEP_PIN_MASK_Y & pins) != 0
+        # z_endstop = (STEP_PIN_MASK_Z & pins) != 0
+        a_endstop = (STEP_PIN_MASK_A & pins) != 0
+        # read each sensor three time
+        for _ in range(0, 3):
+            # x_endstop = x_endstop and ((gpio.read(ENDSTOP_PIN_X) == 1)
+                                       # == endstop_inverted_x)
+            # y_endstop = y_endstop and ((gpio.read(ENDSTOP_PIN_Y) == 1)
+                                       # == endstop_inverted_y)
+            # z_endstop = z_endstop and ((gpio.read(ENDSTOP_PIN_Z) == 1)
+                                       # == endstop_inverted_z)
+            a_endstop = a_endstop and ((gpio.read(ENDSTOP_PIN_A) == 1)
+                                       == endstop_inverted_a)
+        # if x_endstop:
+            # pins &= ~STEP_PIN_MASK_X
+        # if y_endstop:
+            # pins &= ~STEP_PIN_MASK_Y
+        # if z_endstop:
+            # pins &= ~STEP_PIN_MASK_Z
+        # if a_endstop:
+            # pins &= ~STEP_PIN_MASK_A
+        if pins != last_pins:
+            dma.stop()
+            if pins == 0:
+                return True
+            last_pins = pins
+            # Prepare chunk with 1 second buffer. It is needed to make sure
+            # that if program unexpectedly stops, dma will continue work not
+            # long then this buffer time.
+            dma.clear()
+            generate = 1000000
+            while generate > 0:
+                dma.add_pulse(pins, STEPPER_PULSE_LENGTH_US)
+                dma.add_delay(delay)
+                generate -= delay + STEPPER_PULSE_LENGTH_US
+            dma.finalize_stream()
+        if not dma.is_active():
+            dma.run(False)
+    return False
+
+
+def calibrate(a):
+    """ Move head to home position till end stop switch will be triggered.
+    Do not return till all procedures are completed.
+    :param x: boolean, True to calibrate X axis.
+    :param y: boolean, True to calibrate Y axis.
+    :param z: boolean, True to calibrate Z axis.
+    :return: boolean, True if all specified end stops were triggered.
+    """
+    # enable steppers
+    gpio.clear(STEPPERS_ENABLE_PIN)
+    # logging.info("hal calibrate, x={}, y={}, z={}".format(x, y, z))
+    if not __calibrate_private(a, True):  # move from endstop switch
+        return False
+    return __calibrate_private(a, False)  # move to endstop switch
+
+
+
 def move(generator):
     """ Move head to specified position
     :param generator: PulseGenerator object.
