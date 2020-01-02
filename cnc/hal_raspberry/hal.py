@@ -194,6 +194,7 @@ def __calibrate_private(x, y, z, invert):
         #if a_endstop:
         #    pins &= ~STEP_PIN_MASK_A
         if pins != last_pins:
+            logging.debug("pin {}".format(pins))
             dma.stop()
             if pins == 0:
                 return True
