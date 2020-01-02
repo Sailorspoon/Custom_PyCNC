@@ -8,6 +8,7 @@ from cnc.heater import *
 from cnc.enums import *
 from cnc.watchdog import *
 from cnc.hal_raspberry.hal import gpio
+from cnc.hal_raspberry.hal import dma #für testfunktion
 import math
 
 coord = None
@@ -143,7 +144,7 @@ class GMachine(object):
         # save position
         self._position = self._position + delta
 
-    def safe_zero(self, x=True, y=True, z=True, n=True, a=True):
+    def safe_zero(self, x=True, y=True, z=True, n=True, a=False):
         """ Move head to zero position safely.
         :param x: boolean, move X axis to zero
         :param y: boolean, move Y axis to zero
@@ -192,10 +193,10 @@ class GMachine(object):
             d = Coordinates(0, 0, 0, 0, 0, -self._position.n, 0, 0)
             logging.debug("self_position (n): %s" % self._position.n)
             self._move_linear(d, MAX_VELOCITY_MM_PER_MIN_N)
-        if a:
-            d = Coordinates(0, 0, 0, 0, 0, 0, -self._position.a, 0)
-            logging.debug("self_position (a): %s" % self._position.a)
-            self._move_linear(d, MAX_VELOCITY_MM_PER_MIN_A)
+        # if a:
+            # d = Coordinates(0, 0, 0, 0, 0, 0, -self._position.a, 0)
+            # logging.debug("self_position (a): %s" % self._position.a)
+            # self._move_linear(d, MAX_VELOCITY_MM_PER_MIN_A)
 
     def position(self):
         """ Return current machine position (after the latest command)
@@ -319,15 +320,15 @@ class GMachine(object):
             self._convertCoordinates = 1.0
         elif c == 'G28':  # home
             # see safe_zero function in this file for explanation
-            axises = gcode.has('X'), gcode.has('Y'), True, gcode.has('N'), gcode.has('A')
+            axises = gcode.has('X'), gcode.has('Y'), True, gcode.has('N'), False
             if axises == (False, False, False, False, False):
                 axises = True, True, True, True, True
-            # self.safe_zero(*axises)
-            # hal.join()
-            # if not hal.calibrate(gcode.has('X'), gcode.has('Y'), True):
-            	# print("calibrate failed")
-                # raise GMachineException("failed to calibrate")
-            hal.calibrate(True, True, True)
+            self.safe_zero(*axises)
+            hal.join()
+            if not hal.calibrate(gcode.has('X'), gcode.has('Y'), True):
+            	print("calibrate failed")
+                raise GMachineException("failed to calibrate")
+            # hal.calibrate(True, True, True)
         elif c == 'G53':  # switch to machine coords
             self._local = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         elif c == 'G90':  # switch to absolute coords
@@ -434,6 +435,21 @@ class GMachine(object):
             self._move_linear(delta, MAX_VELOCITY_MM_PER_MIN_A)
             print("ende")
 	    '''
+        elif c == 'G94':  #Testfunktion
+            dma.stop()
+            dma.clear()
+            STEP_PIN_MASK_X = 1 << STEPPER_STEP_PIN_X
+            STEP_PIN_MASK_Y = 1 << STEPPER_STEP_PIN_Y
+            STEP_PIN_MASK_Z = 1 << STEPPER_STEP_PIN_Z
+            mask = STEP_PIN_MASK_X | STEP_PIN_MASK_Y | STEP_PIN_MASK_Z
+            generate = 1000000
+            while generate > 0:
+                dma.add_pulse(mask, STEPPER_PULSE_LENGTH_US)
+                dma.add_delay(1000)
+                generate -= 1000 + STEPPER_PULSE_LENGTH_US
+            dma.finalize_stream()
+            dma.run(False)
+
         else:
             raise GMachineException("unknown command")
         # save parameters on success

@@ -181,7 +181,7 @@ def __calibrate_private(x, y, z, invert):
                                        == endstop_inverted_x)
             y_endstop = y_endstop and ((gpio.read(ENDSTOP_PIN_Y) == 1)
                                        == endstop_inverted_y)
-            z_endstop = z_endstop and ((gpio.read(ENDSTOP_PIN_Z) == 1)
+            z_endstop = z_endstop and ((gpio.read(ENDSTOP_PIN_Z) == 1) # false == false = true
                                        == endstop_inverted_z)
             #a_endstop = a_endstop and ((gpio.read(ENDSTOP_PIN_A) == 1)
             #                           == endstop_inverted_a)
