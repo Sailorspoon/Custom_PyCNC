@@ -8,7 +8,7 @@ from cnc.heater import *
 from cnc.enums import *
 from cnc.watchdog import *
 from cnc.hal_raspberry.hal import gpio
-from cnc.hal_raspberry.hal import dma #für testfunktion
+from cnc.hal_raspberry.hal import dma #fuer testfunktion
 import math
 
 coord = None
