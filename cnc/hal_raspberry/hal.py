@@ -298,7 +298,7 @@ def __calibrate_private_a(a, invert):
     return False
 
 
-def calibrate(a):
+def calibrate_a(a):
     """ Move head to home position till end stop switch will be triggered.
     Do not return till all procedures are completed.
     :param x: boolean, True to calibrate X axis.
@@ -309,9 +309,9 @@ def calibrate(a):
     # enable steppers
     gpio.clear(STEPPERS_ENABLE_PIN)
     # logging.info("hal calibrate, x={}, y={}, z={}".format(x, y, z))
-    if not __calibrate_private(a, True):  # move from endstop switch
+    if not __calibrate_private_a(a, True):  # move from endstop switch
         return False
-    return __calibrate_private(a, False)  # move to endstop switch
+    return __calibrate_private_a(a, False)  # move to endstop switch
 
 
 

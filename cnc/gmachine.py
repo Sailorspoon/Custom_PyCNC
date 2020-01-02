@@ -408,7 +408,7 @@ class GMachine(object):
             if self._absoluteCoordinates:
                 raise GMachineException("Not supported, use G90/G91")
         elif c == 'G93':  # in 0.01 grad Schritten richtung Endstopp, wenn Endstopp erreicht 
-            hal.calibrate(True)
+            hal.calibrate_a(True)
 	    '''
             print("Homing A Axis") 
             # self._absoluteCoordinates = False
