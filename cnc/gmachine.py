@@ -329,6 +329,9 @@ class GMachine(object):
             	# print("calibrate failed")
                 # raise GMachineException("failed to calibrate")
             hal.calibrate(True, True, True)
+            self._position.x = 0.0
+            self._position.y = 0.0
+            self._position.z = 455
         elif c == 'G53':  # switch to machine coords
             self._local = Coordinates(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         elif c == 'G90':  # switch to absolute coords

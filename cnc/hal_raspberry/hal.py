@@ -46,9 +46,9 @@ def init():
     gpio.init(STEPPER_DIR_PIN_A, rpgpio.GPIO.MODE_OUTPUT)
     gpio.init(STEPPER_DIR_PIN_B, rpgpio.GPIO.MODE_OUTPUT)
 
-    gpio.init(ENDSTOP_PIN_X, rpgpio.GPIO.MODE_INPUT_PULLUP)
-    gpio.init(ENDSTOP_PIN_Y, rpgpio.GPIO.MODE_INPUT_PULLUP)
-    gpio.init(ENDSTOP_PIN_Z, rpgpio.GPIO.MODE_INPUT_PULLUP)
+    gpio.init(ENDSTOP_PIN_X, rpgpio.GPIO.MODE_INPUT)
+    gpio.init(ENDSTOP_PIN_Y, rpgpio.GPIO.MODE_INPUT)
+    gpio.init(ENDSTOP_PIN_Z, rpgpio.GPIO.MODE_INPUT)
     gpio.init(ENDSTOP_PIN_A, rpgpio.GPIO.MODE_INPUT_PULLUP)
 
     # gpio.init(FAN_PIN, rpgpio.GPIO.MODE_OUTPUT)
