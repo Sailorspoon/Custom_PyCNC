@@ -67,7 +67,8 @@ STEPPER_PULSES_PER_MM_Z = 80
 STEPPER_PULSES_PER_MM_E = 390
 STEPPER_PULSES_PER_MM_Q = 100
 STEPPER_PULSES_PER_MM_N = 80
-STEPPER_PULSES_PER_MM_A = 444  # 1/16 microstepping, 1:50 Getriebe, 1.8deg
+STEPPER_PULSES_PER_MM_A = 142  # 1/256 microstepping, 1.8deg
+#STEPPER_PULSES_PER_MM_A = 444  # 1/16 microstepping, 1:50 Getriebe, 1.8deg
 STEPPER_PULSES_PER_MM_B = 356 # 1/16 microstepping, 1:10 Getriebe, 1.8deg, 1:4 Zahnriemen
 
 # Invert axises direction, by default(False) high level means increase of
